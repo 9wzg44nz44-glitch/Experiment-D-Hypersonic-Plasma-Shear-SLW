@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="format-detection" content="telephone=no">
+<meta name="description" content="Experiment D — educational hypothesis: hypersonic plasma sheath, density cavities, and high-shear MHD sheets as sources of SLW / SW. Not flight data.">
+<title>Experiment D · Hypersonic high-shear plasma → SLW / SW</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0b1220; --panel:#121a2c; --ink:#e8eef8; --muted:#9aabbf;
+  --line:#2a3a55; --accent:#3db8a0; --warn:#e0a060; --hot:#e07060; --shear:#7ec8ff;
+  --radius:14px;
+  --font-d:"Fraunces",Georgia,serif; --font-b:"Source Sans 3",system-ui,sans-serif; --font-m:"IBM Plex Mono",ui-monospace,monospace;
+}
+*{box-sizing:border-box} html,body{margin:0;padding:0}
+body{font-family:var(--font-b);background:radial-gradient(900px 480px at 8% -8%,rgba(61,184,160,.14),transparent 50%),radial-gradient(800px 420px at 100% 0%,rgba(126,200,255,.1),transparent 45%),var(--bg);color:var(--ink);line-height:1.6;font-size:17px;min-height:100vh}
+a{color:var(--shear)} a:hover{color:#fff}
+.wrap{max-width:1080px;margin:0 auto;padding:28px 20px 72px}
+header.top{border-bottom:1px solid var(--line);background:rgba(11,18,32,.94);backdrop-filter:blur(12px);position:sticky;top:0;z-index:20}
+header.top .inner{max-width:1080px;margin:0 auto;padding:12px 20px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.mark{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,#3db8a0,#7ec8ff);display:grid;place-items:center;font:700 .85rem var(--font-m);color:#061018}
+.brand{font-family:var(--font-d);font-weight:700;font-size:1.1rem}
+.brand small{display:block;font-family:var(--font-b);font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.pill{font-size:.78rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:#f4e6c8;color:#1a1408;border:2px solid #c47a3a;border-radius:999px;padding:6px 12px}
+.kicker{font-size:.78rem;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 10px}
+h1,h2,h3{font-family:var(--font-d);font-weight:700;line-height:1.2;margin:0 0 .45em}
+h1{font-size:clamp(1.7rem,4vw,2.55rem)} h2{font-size:clamp(1.25rem,2.4vw,1.7rem);margin-top:1.7em} h3{font-size:1.1rem}
+.lede{font-size:1.12rem;color:var(--muted);max-width:48rem}
+.banner{border:2px solid #8a5c18;background:#f7e8c6;color:#1a1408;border-radius:10px;padding:14px 16px;margin:16px 0 22px;font-size:.95rem}
+.banner strong{color:#0a0804}
+.banner.warn{border-color:#8a2e22;background:#f5d4ce}
+.grid2{display:grid;grid-template-columns:1.15fr .85fr;gap:18px;margin:18px 0}
+@media (max-width:860px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+.card h3{margin-top:0}
+.cartoon{background:#0a101c;border:1px solid var(--line);border-radius:12px;padding:10px}
+.cartoon svg{width:100%;height:auto;display:block}
+.controls{display:grid;gap:.65rem 1rem;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));margin:1rem 0}
+.controls label{display:block;font-size:.88rem;color:var(--muted)}
+.controls output{font-family:var(--font-m);color:var(--accent);font-weight:600}
+.controls label.shear-hi{color:#f4e6c8;background:rgba(126,200,255,.12);border:1px solid #7ec8ff;border-radius:10px;padding:10px}
+.controls label.shear-hi output{color:#7ec8ff}
+input[type=range]{width:100%}
+.meters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin:12px 0}
+.meters>div{background:#0a101c;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.meters .lbl{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.meters strong{display:block;font:600 1.05rem var(--font-m);color:var(--shear);margin-top:2px}
+.plot{width:100%;height:220px;background:#0a101c;border-radius:10px;border:1px solid var(--line);display:block}
+.eq{font-family:var(--font-m);font-size:.82rem;background:#0a101c;border:1px solid var(--line);border-radius:10px;padding:12px 14px;overflow-x:auto;white-space:pre-wrap}
+.chain{font-family:var(--font-m);font-size:.8rem;background:#0a101c;border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto;white-space:pre}
+ul.tight>li{margin:.35em 0}
+.tag{display:inline-block;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;background:rgba(61,184,160,.15);color:var(--accent);border:1px solid rgba(61,184,160,.4);border-radius:999px;padding:3px 8px;margin-right:6px}
+footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
+</style>
+</head>
+<body>
+<header class="top"><div class="inner">
+  <div class="mark">D</div>
+  <div class="brand">Experiment D <small>Independent · educational hypothesis</small></div>
+  <span class="pill">Not flight data</span>
+</div></header>
+
+<main class="wrap">
+<p class="kicker">Hypersonic ionospheric plasma · high-shear MHD · SLW / SW</p>
+<h1>Hypersonic plasma-sheath cavitation, high shear, and MHD sheets as SLW / SW sources</h1>
+<p class="lede">Working claim: a hypersonic vehicle in the ionosphere drives a dense, time-varying plasma sheath, density cavities, and <strong>high-shear</strong> MHD electric sheets. Those gradient structures source SLW / SW in Hively’s more-complete electrodynamics (MCE) — a longitudinal / scalar channel conventional RF sensors miss.</p>
+
+<div class="banner"><strong>Standalone page.</strong> Independent site — not linked from any other experiment hub. Hypothesis + experiment design only.</div>
+<div class="banner warn"><strong>Tone check.</strong> High shear is established hypersonic / MHD physics. Coupling into Hively SLW / SW is the <em>hypothesis under test</em>. “Cavitation” means a <strong>plasma-density-cavity analog</strong>, not liquid vapor bubbles.</div>
+
+<h2 id="hypothesis">Hypothesis</h2>
+<div class="card">
+<p>At Mach 5–20 in the upper atmosphere / lower ionosphere, shock heating ionizes air. The vehicle is wrapped in a sheath of free electrons (often n<sub>e</sub> ~ 10<sup>16</sup>–10<sup>20</sup> m⁻³) that already blackouts ordinary radio. The sheath fluctuates with attitude, altitude, ablation, and the geomagnetic field.</p>
+<p><span class="tag">First-class</span> Hypersonic flow is <strong>high-shear flow</strong>: extreme velocity gradients in the boundary layer, shock-slip surfaces, wake shear layers, and MHD-forced sheets. Shear steepens ∇n<sub>e</sub> and ∇φ, drives thin <b>v</b>×<b>B</b> electric sheets and Hall charge separation, and imprints <strong>bursty, attitude-linked modulation</strong> on any longitudinal / scalar channel. Gradient strength scales with shear rate — higher shear → stronger predicted SLW / SW drive than a uniform sheath of the same average n<sub>e</sub>.</p>
+<p class="eq">Hively MCE sketch (educational):
+gradient-driven current  J ∝ ∇ρ  (or ∇φ)
+→ dynamical scalar  C = ∇·A + ∂tφ
+→ longitudinal E  →  SLW channel
+SW limit (toy): E→0 (Ohmic α forced off)
+
+Predicted: SLW ignores classical skin-effect cutoff that kills TEM through the sheath.</p>
+</div>
+
+<h2 id="geometry">Source geometry</h2>
+<div class="grid2">
+  <div class="cartoon" aria-label="Vehicle sheath cartoon">
+    <svg id="cartoon" viewBox="0 0 640 360" role="img">
+      <defs>
+        <linearGradient id="sheathG" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#3db8a0" stop-opacity=".15"/>
+          <stop offset="55%" stop-color="#7ec8ff" stop-opacity=".35"/>
+          <stop offset="100%" stop-color="#e07060" stop-opacity=".2"/>
+        </linearGradient>
+      </defs>
+      <rect width="640" height="360" fill="#070b14"/>
+      <text x="16" y="28" fill="#9aabbf" font-family="IBM Plex Mono" font-size="12">IONOSPHERE / UPPER ATM · cartoon</text>
+      <g stroke="#2a3a55" stroke-width="1">
+        <path d="M20 80 H200"/><path d="M20 120 H180"/><path d="M20 160 H190"/><path d="M20 200 H170"/>
+      </g>
+      <text x="24" y="70" fill="#9aabbf" font-size="11" font-family="IBM Plex Mono">freestream</text>
+      <path d="M210 40 Q250 180 210 320" fill="none" stroke="#e0a060" stroke-width="2" stroke-dasharray="6 4"/>
+      <text x="218" y="56" fill="#e0a060" font-size="11" font-family="IBM Plex Mono">shock</text>
+      <ellipse id="sheath" cx="340" cy="180" rx="120" ry="70" fill="url(#sheathG)" stroke="#3db8a0" stroke-width="1.5"/>
+      <text x="300" y="120" fill="#3db8a0" font-size="11" font-family="IBM Plex Mono">plasma sheath</text>
+      <path d="M270 180 L360 155 L430 180 L360 205 Z" fill="#cfd8e6" stroke="#fff" stroke-width="1"/>
+      <text x="318" y="184" fill="#061018" font-size="11" font-family="IBM Plex Mono" font-weight="600">vehicle</text>
+      <path id="shearSheet" d="M250 210 Q320 230 420 215" fill="none" stroke="#7ec8ff" stroke-width="4" stroke-linecap="round"/>
+      <text id="shearLabel" x="250" y="250" fill="#7ec8ff" font-size="12" font-family="IBM Plex Mono" font-weight="600">HIGH-SHEAR SHEET</text>
+      <ellipse id="cavity" cx="390" cy="150" rx="28" ry="16" fill="#0b1220" stroke="#e07060" stroke-width="1.5"/>
+      <text x="408" y="138" fill="#e07060" font-size="11" font-family="IBM Plex Mono">density cavity</text>
+      <g stroke="#e0a060" fill="#e0a060" stroke-width="1.5">
+        <line x1="370" y1="150" x2="355" y2="165"/><polygon points="355,165 362,160 360,168"/>
+        <line x1="405" y1="150" x2="420" y2="165"/><polygon points="420,165 413,160 415,168"/>
+      </g>
+      <text x="430" y="178" fill="#e0a060" font-size="11" font-family="IBM Plex Mono">∇φ · ∇nₑ</text>
+      <g id="slwRays" stroke="#3db8a0" stroke-width="1.5" fill="none">
+        <path d="M430 180 Q500 140 580 90"/>
+        <path d="M430 180 Q510 180 590 175"/>
+        <path d="M430 180 Q500 220 575 270"/>
+      </g>
+      <text x="500" y="80" fill="#3db8a0" font-size="12" font-family="IBM Plex Mono">SLW / SW rays (hypothesis)</text>
+      <rect x="560" y="300" width="50" height="28" rx="4" fill="#182338" stroke="#7ec8ff"/>
+      <text x="566" y="318" fill="#7ec8ff" font-size="10" font-family="IBM Plex Mono">SLW RX</text>
+    </svg>
+  </div>
+  <div class="card">
+    <h3>What the cartoon is saying</h3>
+    <ul class="tight">
+      <li><strong>Sheath</strong> — free-electron wrap; TEM blackout / clutter.</li>
+      <li><strong>High-shear sheet</strong> — amplifier of ∇φ, ∇ρ; scales with shear rate, not only mean n<sub>e</sub>.</li>
+      <li><strong>Density cavity</strong> — plasma “cavitation” analog; steep edges.</li>
+      <li><strong>MHD sheets</strong> — <b>v</b>×<b>B</b>, Hall separation, thin electric structures.</li>
+      <li><strong>SLW RX</strong> — longitudinal / scalar accept, TEM reject.</li>
+    </ul>
+    <p style="color:var(--muted);font-size:.92rem;margin-bottom:0">Spatial discriminant: strongest along shear sheet &amp; wake — not only the stagnation cap.</p>
+  </div>
+</div>
+
+<h2 id="controls">Toy controls</h2>
+<p>Illustrative scaling only. Shear rate boosts gradient drive and burst modulation. Numbers are not calibrated flight SNR.</p>
+<div class="controls">
+  <label>Altitude <output id="oAlt"></output><input id="alt" type="range" min="30" max="120" step="1" value="70"></label>
+  <label>Mach <output id="oMach"></output><input id="mach" type="range" min="5" max="20" step="0.1" value="10"></label>
+  <label class="shear-hi">Shear rate (arb.) — amplifier <output id="oShear"></output><input id="shear" type="range" min="0.1" max="10" step="0.1" value="3"></label>
+  <label>B orientation (°) <output id="oB"></output><input id="B" type="range" min="0" max="90" step="1" value="45"></label>
+  <label>n<sub>e</sub> (log₁₀ m⁻³) <output id="oNe"></output><input id="ne" type="range" min="16" max="20" step="0.1" value="18"></label>
+  <label>Cavity depth <output id="oCav"></output><input id="cav" type="range" min="0" max="1" step="0.01" value="0.45"></label>
+  <label>RF band (GHz) <output id="oF"></output><input id="f" type="range" min="0.1" max="12" step="0.1" value="1.3"></label>
+  <label>Range r (km) <output id="oR"></output><input id="r" type="range" min="1" max="500" step="1" value="50"></label>
+</div>
+
+<div class="meters">
+  <div><div class="lbl">∇φ drive (arb.)</div><strong id="mGrad">—</strong></div>
+  <div><div class="lbl">Shear boost</div><strong id="mShear">—</strong></div>
+  <div><div class="lbl">SLW proxy P</div><strong id="mP">—</strong></div>
+  <div><div class="lbl">TEM skin atten.</div><strong id="mSkin">—</strong></div>
+  <div><div class="lbl">Burst mod. depth</div><strong id="mMod">—</strong></div>
+  <div><div class="lbl">Toy SNR</div><strong id="mSnr">—</strong></div>
+</div>
+
+<canvas class="plot" id="sigPlot" width="1000" height="220" aria-label="Toy SLW burst waveform"></canvas>
+<p style="color:var(--muted);font-size:.88rem">Waveform: modulated SLW proxy vs quiet TEM floor. Bursts track shear × Mach kinematics — a discriminant ordinary plasma-noise maps lack.</p>
+
+<h2 id="chain">Detection chain</h2>
+<div class="chain">Hypersonic source (sheath + shear sheet + cavity)
+        │
+        ▼
+Hively-style SLW antenna
+  · coaxial monopole + tubular return + annular / sleeve balun
+  · or bifilar pancake (TEM-null bias)
+        │
+        ▼
+Faraday / conductive barrier / seawater isolation (skin-effect veto on TEM)
+        │
+        ▼
+LNA → TinySA Ultra / SA  (look for longitudinal / scalar content)
+        │
+        ▼
+Correlate bursts with Mach / AoA / control-surface events</div>
+
+<h2 id="discriminants">Discriminants</h2>
+<div class="grid2">
+  <div class="card">
+    <h3>Pass / interesting</h3>
+    <ul class="tight">
+      <li>TEM-null path still shows tone / bursts.</li>
+      <li>Survives conductive barrier that kills TEM (skin-effect test).</li>
+      <li>Longitudinal / scalar polarization preference vs transverse.</li>
+      <li>Burst spectrum tracks Mach, AoA, control-surface events — not only altitude or mean n<sub>e</sub>.</li>
+      <li>Spatial peak along shear sheet / wake, not only stagnation cap.</li>
+    </ul>
+  </div>
+  <div class="card">
+    <h3>Fail / boring</h3>
+    <ul class="tight">
+      <li>Signal dies with TEM loop / single-filar floor.</li>
+      <li>No correlation with shear kinematics.</li>
+      <li>Indistinguishable from sferics / ionospheric clutter after TEM rejection.</li>
+      <li>Only mean-n<sub>e</sub> scaling, no shear boost.</li>
+    </ul>
+  </div>
+</div>
+
+<h2 id="risks">Risks / caveats</h2>
+<div class="card">
+<ul class="tight">
+  <li>Ordinary plasma noise, sferics, and ionospheric clutter can fake “bursts.”</li>
+  <li>TEM rejection must be ruthless; leakage looks like a discovery.</li>
+  <li>This is a <strong>detection / exploitation hypothesis</strong>, not a demonstrated weapon or flight signature.</li>
+  <li>Lab analogs (pulsed plasma / spark + MHD coil + sheared flow) before any field geometry.</li>
+</ul>
+</div>
+
+<h2 id="next">Next hardware (lab analog first)</h2>
+<div class="card">
+<ol>
+  <li>Reuse bifilar / monopole-balun + TinySA chain from prior SLW benches.</li>
+  <li>Pulsed plasma or spark gap + external B coil to form thin <b>v</b>×<b>B</b> sheets.</li>
+  <li>Impose sheared flow (gas jet / rotating electrode) — watch whether SLW proxy tracks shear rate at fixed mean n<sub>e</sub>.</li>
+  <li>Only later: field geometry / ionospheric path discussion with proper TEM vetoes.</li>
+</ol>
+</div>
+
+<h2 id="refs">Theory anchors</h2>
+<div class="card">
+<ul class="tight">
+  <li>Lee M. Hively, US Patent 9,306,527 (2016) — systems / methods for generating and/or utilizing scalar-longitudinal waves.</li>
+  <li>Hively MCE: SLW from gradient-driven current; predicted not subject to classical skin-effect cutoff.</li>
+  <li>High shear: standard hypersonic boundary-layer / MHD sheet physics; SLW coupling remains the claim under test.</li>
+</ul>
+</div>
+
+<footer>
+  <strong>Dan Britton</strong> · Experiment D · educational hypothesis · independent site<br>
+  No flight measurements claimed. Curious, technical, experiment-first.
+</footer>
+</main>
+
+<script>
+(function(){
+  const $ = (id) => document.getElementById(id);
+  const outs = {alt:$('oAlt'),mach:$('oMach'),shear:$('oShear'),B:$('oB'),ne:$('oNe'),cav:$('oCav'),f:$('oF'),r:$('oR')};
+  const ids = ['alt','mach','shear','B','ne','cav','f','r'];
+  function fmt(x,d){ return Number(x).toFixed(d); }
+
+  function model(){
+    const alt=+$('alt').value, mach=+$('mach').value, shear=+$('shear').value, Bdeg=+$('B').value;
+    const neLog=+$('ne').value, cav=+$('cav').value, fGHz=+$('f').value, rKm=+$('r').value;
+    outs.alt.textContent=alt+' km'; outs.mach.textContent=fmt(mach,1);
+    outs.shear.textContent=fmt(shear,1); outs.B.textContent=Bdeg+'°';
+    outs.ne.textContent='1e'+fmt(neLog,1); outs.cav.textContent=fmt(cav,2);
+    outs.f.textContent=fmt(fGHz,1)+' GHz'; outs.r.textContent=rKm+' km';
+
+    const dens=Math.pow(10, neLog-18);
+    const Bfac=0.35+0.65*Math.sin(Bdeg*Math.PI/180);
+    const shearBoost=Math.pow(shear,1.15);
+    const cavBoost=0.4+1.8*cav;
+    const machFac=Math.pow(mach/10,1.2);
+    const altFac=Math.exp(-(alt-70)/40);
+    const gradDrive=dens*shearBoost*cavBoost*Bfac*machFac*altFac;
+    const temSkinDb=8+6*(neLog-16)+2*Math.log10(Math.max(fGHz,0.1));
+    const slwProxy=gradDrive/(1+0.002*rKm*rKm);
+    const modDepth=Math.min(0.95,0.15+0.08*shear+0.03*(mach-5)+0.25*cav);
+    const noise=0.35+0.02*(neLog-16);
+    const snr=slwProxy/noise;
+
+    $('mGrad').textContent=gradDrive.toExponential(2);
+    $('mShear').textContent='×'+fmt(shearBoost,2);
+    $('mP').textContent=slwProxy.toExponential(2);
+    $('mSkin').textContent='−'+fmt(temSkinDb,1)+' dB TEM';
+    $('mMod').textContent=fmt(modDepth,2);
+    $('mSnr').textContent=fmt(snr,2)+' (toy)';
+
+    $('sheath').setAttribute('rx', String(90+40*cav+8*(neLog-16)));
+    $('sheath').setAttribute('ry', String(55+20*cav));
+    $('cavity').setAttribute('rx', String(12+30*cav));
+    $('cavity').setAttribute('ry', String(8+16*cav));
+    $('shearSheet').setAttribute('stroke-width', String(2+0.7*shear));
+    $('shearLabel').textContent='HIGH-SHEAR SHEET  (ṡ='+fmt(shear,1)+')';
+    $('slwRays').setAttribute('stroke-opacity', String(Math.min(1,0.25+0.08*shear)));
+    drawWave(modDepth, slwProxy, shear, mach);
+  }
+
+  function drawWave(m, amp, shear, mach){
+    const c=$('sigPlot'), x=c.getContext('2d'), W=c.width, H=c.height;
+    x.clearRect(0,0,W,H); x.fillStyle='#0a101c'; x.fillRect(0,0,W,H);
+    x.strokeStyle='#1c2a40'; x.lineWidth=1;
+    for(let i=0;i<6;i++){ const y=20+i*((H-40)/5); x.beginPath(); x.moveTo(40,y); x.lineTo(W-12,y); x.stroke(); }
+    x.fillStyle='#9aabbf'; x.font='12px IBM Plex Mono';
+    x.fillText('toy SLW proxy (arb.)',48,18); x.fillText('time →',W-70,H-10);
+    const N=400, f0=6+0.4*mach, burst=1.5+0.35*shear;
+    x.beginPath();
+    for(let i=0;i<N;i++){
+      const t=i/(N-1);
+      const env=m*Math.exp(-Math.pow((t-0.35)*burst,2)*18)+m*0.45*Math.exp(-Math.pow((t-0.72)*burst,2)*22);
+      const yv=amp*(1+env)*Math.sin(2*Math.PI*f0*t*8);
+      const px=40+t*(W-52), py=H/2-yv*(H*0.22)/Math.max(amp,1e-9);
+      if(i===0) x.moveTo(px,py); else x.lineTo(px,py);
+    }
+    x.strokeStyle='#3db8a0'; x.lineWidth=2; x.stroke();
+    x.beginPath();
+    for(let i=0;i<N;i++){
+      const t=i/(N-1);
+      const yv=0.08*amp*Math.sin(2*Math.PI*1.7*t*8+1.2);
+      const px=40+t*(W-52), py=H/2-yv*(H*0.22)/Math.max(amp,1e-9)+H*0.22;
+      if(i===0) x.moveTo(px,py); else x.lineTo(px,py);
+    }
+    x.strokeStyle='#e07060'; x.lineWidth=1.2; x.setLineDash([4,4]); x.stroke(); x.setLineDash([]);
+    x.fillStyle='#e07060'; x.fillText('TEM floor (rejected)', W-200, H/2+H*0.22-8);
+    x.fillStyle='#3db8a0'; x.fillText('SLW bursts (shear-modulated)', 48, H-14);
+  }
+
+  ids.forEach(id => $(id).addEventListener('input', model));
+  model();
+})();
+</script>
+</body>
+</html>
