@@ -2,3 +2,6 @@ __pycache__/
 sim/js_outputs.json
 sim/py_outputs.json
 sim/wl_outputs.json
+sim/js_mod_outputs.json
+sim/py_mod_outputs.json
+sim/wl_mod_outputs.json

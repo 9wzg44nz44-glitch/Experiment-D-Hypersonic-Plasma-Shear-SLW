@@ -1,4 +1,4 @@
-/* Experiment D — SLW/SW detectability engine (expt-d-detect-v0.1)
+/* Experiment D — SLW/SW detectability engine (expt-d-detect-v0.2; v0.1 formulas unchanged, v0.2 adds js/slw-modulation.js)
  * Pure functions, no DOM. Used by slw-detectability.html and by node (cross-check vs Python/WL).
  * Labels: FACT = published/standard physics (cited); HYP = Hively EED (as printed in the cited papers / hub ledger);
  *         ASSUMPTION = modelling choice made here; SWEEP = unknown coupling, never given a single value.
@@ -6,7 +6,7 @@
  */
 (function (root) {
   "use strict";
-  const VERSION = "expt-d-detect-v0.1";
+  const VERSION = "expt-d-detect-v0.2";
   // FACT: CODATA 2018 exact / recommended values
   const K = {
     c: 299792458,

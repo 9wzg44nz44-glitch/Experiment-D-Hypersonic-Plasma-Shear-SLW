@@ -1,11 +1,11 @@
 (* ::Package:: *)
 (* Experiment D - SLW/SW detectability engine, Mathematica twin of web/js/slw-detect.js and expt_d_model.py.
-   PhysicsVersion: expt-d-detect-v0.1   (NOT yet executed: no Wolfram kernel on the build box; syntax checked by eye + wl_lint.mjs)
+   PhysicsVersion: expt-d-detect-v0.2 (v0.1 engine unchanged + v0.2 sheath-modulation section at the end)   (NOT yet executed: no Wolfram kernel on the build box; syntax checked by eye + wl_lint.mjs)
    Labels: FACT = published/standard physics; HYP = Hively EED as printed (Hively & Loebl 2019 Eq. B5/37;
    US 9,306,527 Eq. 15; hub ledger box C = -mu0 (d_t rho + div J)); ASSUMPTION = modelling choice; SWEEP = unknown coupling.
    Symbols avoid the protected single letters C, D, E, I, K, N, O. *)
 
-exptDVersion = "expt-d-detect-v0.1";
+exptDVersion = "expt-d-detect-v0.2";
 
 (* FACT: CODATA 2018 *)
 cLight = 299792458.;
@@ -135,7 +135,7 @@ exptDManipulate[] := Manipulate[
         "SE_dB" -> se, "noise_env" -> env, "log10_eta" -> le, "chi" -> chi, "log10_kappa" -> lk, "r_km" -> rk|>;
     q = exptDModel[pars];
     Column[{
-      Style["Experiment D: could a receiver hear it?  physics " <> exptDVersion <> " \[CenterDot] UI v0.1.1 (HYP estimate, not flight data)", Bold],
+      Style["Experiment D: could a receiver hear it?  physics " <> exptDVersion <> " \[CenterDot] UI v0.2.0 (HYP estimate, not flight data)", Bold],
       Style[If[q["eta_th0"] <= 1.,
         "Detectable? Only if \[Eta] > " <> ToString[NumberForm[q["eta_th0"], 3]],
         "Detectable? No, not for any \[Eta] \[LessEqual] 1 (would need \[Eta] = " <> ToString[NumberForm[q["eta_th0"], 3]] <> ")"] <>
@@ -169,4 +169,158 @@ exptDManipulate[] := Manipulate[
    {{env, "quiet_rural", "local radio noise (ITU-R P.372)"}, {"quiet_rural", "rural", "residential", "city", "none"}},
    {{chi, 0., "\[Chi]: SLW loss in plasma relative to radio (SWEEP)"}, 0., 1.},
    {{lk, 0., "log10 \[Kappa]_C: receiver response to a pure scalar wave (SWEEP)"}, -12., 0.},
+   SaveDefinitions -> True];
+
+(* ===================== v0.2 "Sheath modulation" (mirror of js/slw-modulation.js and sim/expt_d_mod.py) =====================
+   NOT yet executed (no Wolfram kernel on the build box). FACT: Mack 2nd mode f2 = C U_E/(2 delta) (Parziale, Shepherd & Hornung 2015,
+   JFM 781:87, Table 3: C = 0.63-0.69); wake oscillation f = St U/D (Schmidt & Shepherd 2015 JFM 785:R3; Awasthi et al. 2022;
+   Thasu & Duvvuri 2022); NO+ recombination 4.2e-7 (Te/300)^-0.85 cm^3/s (Torr, St-Maurice & Torr 1977); Kossyi et al. 1992 R45, R46, R57.
+   Detection: Eckart filter + square law + smoothing (Rudnick 1961), flat-band limit = radiometer equation (Dicke 1946).
+   ASSUMPTIONS (sliders): U_E = U, top-hat bands, m2, msh, Tw, xs_D. HYP: the SLW itself (HL2019 Eq. B5, eta SWEEP). *)
+amu = 1.66053906660*^-27; mAir = 28.9644 amu; xO2 = 0.209476; xN2 = 0.780840;
+aLF75 = cLight cLight/(4 N[Pi] 1.*^6 1.*^6);
+modDefaults = <|"C_mack" -> 0.65, "b2" -> 0.2, "m2" -> 0.01, "D_m" -> 1., "St" -> 0.2, "bsh" -> 0.2, "msh" -> 0.1,
+   "Tw_K" -> 3000., "xs_D" -> 1., "tau_s" -> 1., "d_th" -> 1., "listen" -> "lf75"|>;
+nqBand = 200; nqAll = 1200; fAllLo = 1.; fAllHi = 1.*^7;
+amFreqs = {433.92*^6, 1296.*^6, 2.25*^9, 10.*^9};
+
+alphaDR[t_] := 4.2*^-13 (t/300.)^-0.85;                         (* FACT Torr et al. 1977, NO+ *)
+kAttO2[t_] := 1.4*^-41 (300./t) Exp[-600./t];                   (* FACT Kossyi 1992 R45, Te = Tg *)
+kAttN2[t_] := 1.07*^-43 (300./t)^2 Exp[-70./t];                 (* FACT Kossyi 1992 R46, Te = Tg *)
+kDetO2[t_] := 2.7*^-16 (t/300.)^0.5 Exp[-5590./t];              (* FACT Kossyi 1992 R57 *)
+nAir[h_] := rhoAir[h]/mAir;
+
+sheathLoss[f_, p_] := Module[{ne = 10.^p["log10_ne"], wp, nu, w, den, er, ei, nn},
+   wp = Sqrt[ne qe qe/(eps0 me)];
+   nu = p["nu_scale"] nuRef rhoAir[p["h_km"]]/rhoAir[hRef];
+   w = 2 N[Pi] f; den = w w + nu nu;
+   er = 1 - wp wp/den; ei = wp wp nu/(w den);
+   nn = cSqrt[er, ei];
+   {dbPerNp2 (w/cLight) nn[[2]] p["d_sh"], 4 nn[[1]]/((nn[[1]] + 1)^2 + nn[[2]]^2), nn[[1]]}];
+
+noiseDensity[f_, p_] := Module[{nts = -102. + 10. Log10[p["rbw"]/30.*^3], env = noiseEnv[p["noise_env"]], kt0b, fa, nn},
+   If[env === None, nn = nts,
+    kt0b = dBm[kB tRef p["rbw"]]; fa = env[[1]] - env[[2]] Log10[f/1.*^6];
+    nn = sumdBm[nts, kt0b + fa - p["SE_dB"]]];
+   10.^(nn/10.) 1.*^-3/p["rbw"]];
+
+apArea[kind_, f_] := Which[kind === "hub", hubAeff hubEta, kind === "lf75", aLF75, True, (cLight/f)^2/(4 N[Pi])];
+
+modSetup[pin_Association] := Module[{p = Join[exptDDefaults, modDefaults, pin], b, ne, uu, s = <||>, al, na, nO2, nN2, i0},
+   b = exptDModel[p]; ne = 10.^p["log10_ne"]; uu = b["U_ms"];
+   s["p"] = p; s["ne"] = ne; s["U"] = uu;
+   s["f2"] = p["C_mack"] uu/(2 p["delta_m"]);                  (* FACT Mack 2nd mode *)
+   s["f2_lo"] = s["f2"] (1 - p["b2"]/2); s["f2_hi"] = s["f2"] (1 + p["b2"]/2);
+   s["fsh"] = p["St"] uu/p["D_m"];                              (* FACT wake Strouhal *)
+   s["fsh_lo"] = s["fsh"] (1 - p["bsh"]/2); s["fsh_hi"] = s["fsh"] (1 + p["bsh"]/2);
+   al = alphaDR[p["Tw_K"]]; s["alpha"] = al;
+   s["t_s"] = p["xs_D"] p["D_m"]/uu;
+   s["surv"] = 1./(1. + al ne s["t_s"]);                        (* dn/dt = -alpha n^2 *)
+   s["tau_dr"] = 1./(al ne);
+   s["f_chem"] = 1./(2 N[Pi] s["tau_dr"]);
+   na = nAir[p["h_km"]]; nO2 = xO2 na; nN2 = xN2 na;
+   s["nu_att"] = kAttO2[p["Tw_K"]] nO2 nO2 + kAttN2[p["Tw_K"]] nO2 nN2;
+   s["nu_det"] = kDetO2[p["Tw_K"]] nO2;
+   s["L_wake_m"] = uu s["tau_dr"];
+   i0 = b["J_Am2"] p["delta_m"] Sqrt[p["A_s"]];
+   s["I0"] = i0; s["It"] = b["Isrc_A"]; s["I2"] = p["m2"] i0; s["Ish"] = p["msh"] s["surv"] i0;
+   s["fc"] = b["fc_Hz"]; s["r"] = p["r_km"] 1.*^3;
+   s];
+
+psdI[s_, f_] := Module[{p = s["p"], g, sv},
+   g = If[f <= s["fc"], 1., (f/s["fc"])^(-5./3.)];
+   sv = s["It"]^2 g/(2.5 s["fc"]);
+   If[s["f2_lo"] <= f && f < s["f2_hi"], sv += s["I2"]^2/(p["b2"] s["f2"])];
+   If[s["fsh_lo"] <= f && f < s["fsh_hi"], sv += s["Ish"]^2/(p["bsh"] s["fsh"])];
+   sv];
+
+sOne[s_, f_, a_] := Module[{p = s["p"], loss},
+   loss = If[p["chi"] != 0, p["chi"] sheathLoss[f, p][[1]], 0.];
+   2 z0 psdI[s, f] a/(4 N[Pi] s["r"])^2 10.^(-loss/10.)];
+
+qBand[s_, fa_, fb_, a_] := Module[{df = (fb - fa)/nqBand},
+   Sum[With[{f = fa + (i + 0.5) df}, (sOne[s, f, a]/noiseDensity[f, s["p"]])^2 df], {i, 0, nqBand - 1}]];
+
+qAll[s_, a_] := Module[{la = Log[fAllLo], lb = Log[fAllHi], dl, fmin = cLight/(2 N[Pi] s["r"])},
+   dl = (lb - la)/nqAll;
+   Sum[With[{f = Exp[la + (i + 0.5) dl]}, If[f < fmin, 0., (sOne[s, f, a]/noiseDensity[f, s["p"]])^2 f dl]], {i, 0, nqAll - 1}]];
+
+etaFromQ[q_, tau_, dth_] := If[q > 0, (dth dth/(tau q))^0.25, Infinity];
+
+tunedRx[s_, f_, ap_] := Module[{p = s["p"], a, g, fs, iband2, loss, p1, nw, q, tau},
+   a = apArea[ap, f];
+   g = If[f <= s["fc"], 1., (f/s["fc"])^(-5./3.)];
+   fs = Min[1., p["rbw"] g/(2.5 s["fc"])];
+   iband2 = s["It"]^2 fs + p["rbw"] (psdI[s, f] - s["It"]^2 g/(2.5 s["fc"]));
+   loss = p["chi"] sheathLoss[f, p][[1]];
+   p1 = 2 z0 iband2 a/(4 N[Pi] s["r"])^2 10.^(-loss/10.);
+   nw = noiseDensity[f, p] p["rbw"];
+   q = p["rbw"] (p1/nw)^2;
+   tau = Max[p["tau_s"], 1./p["rbw"]];
+   <|"P1_dBm" -> dBm[p1], "N_dBm" -> dBm[nw], "eta1" -> Sqrt[nw/p1], "eta" -> etaFromQ[q, tau, p["d_th"]],
+    "gain_dB" -> 5. Log10[tau p["rbw"]] - 10. Log10[p["d_th"]]|>];
+
+matchedRx[s_, fa_, fb_, fcen_] := Module[{p = s["p"], a, q, tau},
+   a = apArea["recip", fcen]; q = qBand[s, fa, fb, a]; tau = Max[p["tau_s"], 1./(fb - fa)];
+   <|"A" -> a, "q" -> q, "eta" -> etaFromQ[q, tau, p["d_th"]], "kr" -> 2 N[Pi] s["r"] fcen/cLight, "quarter_wave_m" -> cLight/fcen/4|>];
+
+amFingerprint[p_, f_, m_] := Module[{out, r0},
+   out = Table[With[{rr = sheathLoss[f, Append[p, "log10_ne" -> p["log10_ne"] + Log10[1 + sg m]]]},
+       {rr[[1]] - 10. Log10[rr[[2]]], 2 N[Pi] f/cLight rr[[3]] p["d_sh"]}], {sg, {1, -1}}];
+   r0 = sheathLoss[f, p];
+   <|"dL_dB" -> out[[1, 1]] - out[[2, 1]], "dphi_rad" -> out[[1, 2]] - out[[2, 2]], "L0_dB" -> r0[[1]] - 10. Log10[r0[[2]]]|>];
+
+prefixKeys[pre_String, a_Association] := KeyMap[pre <> # &, a];
+
+exptDModModel[pin_Association] := Module[{s = modSetup[pin], p, o, m2, msh, a, qa, q2, qs, p2, eta, fs, am},
+   p = s["p"];
+   o = Join[<|"version" -> exptDVersion|>, KeyTake[s, {"U", "f2", "f2_lo", "f2_hi", "fsh", "fsh_lo", "fsh_hi", "alpha", "t_s", "surv",
+       "tau_dr", "f_chem", "nu_att", "nu_det", "L_wake_m", "I0", "It", "I2", "Ish"}]];
+   o = Join[o, prefixKeys["r433_", tunedRx[s, 433.92*^6, "hub"]], prefixKeys["r1296_", tunedRx[s, 1296.*^6, "hub"]],
+     prefixKeys["r1M_", tunedRx[s, 1.*^6, "recip"]]];
+   m2 = matchedRx[s, s["f2_lo"], s["f2_hi"], s["f2"]]; msh = matchedRx[s, s["fsh_lo"], s["fsh_hi"], s["fsh"]];
+   o = Join[o, prefixKeys["rMack_", m2], prefixKeys["rShed_", msh]];
+   a = apArea[p["listen"], 1.*^6]; o["A_listen"] = a;
+   qa = qAll[s, a]; q2 = qBand[s, s["f2_lo"], s["f2_hi"], a]; qs = qBand[s, s["fsh_lo"], s["fsh_hi"], a];
+   o["q_all"] = qa; o["q_mack"] = q2; o["q_shed"] = qs;
+   o["eta_all"] = etaFromQ[qa, p["tau_s"], p["d_th"]];
+   o["eta_mack"] = etaFromQ[q2, Max[p["tau_s"], 1./(s["f2_hi"] - s["f2_lo"])], p["d_th"]];
+   o["eta_shed"] = etaFromQ[qs, Max[p["tau_s"], 1./(s["fsh_hi"] - s["fsh_lo"])], p["d_th"]];
+   o["kr_shed"] = 2 N[Pi] s["r"] s["fsh"]/cLight;
+   p2 = 2 z0 s["I2"]^2 a/(4 N[Pi] s["r"])^2;
+   o["eta_tone_mack"] = If[p2 > 0, Sqrt[p["d_th"] noiseDensity[s["f2"], p]/(p2 p["tau_s"])], Infinity];
+   eta = 10.^p["log10_eta"];
+   o["dev_all"] = If[o["eta_all"] < Infinity, eta^4/o["eta_all"]^4 p["d_th"], 0.];
+   fs = Table[10.^(k/8.), {k, 0, 56}];
+   o["spec_f"] = fs;
+   o["spec_S_dBmHz"] = dBm[Max[eta eta sOne[s, #, a], 1.*^-300]] & /@ fs;
+   o["spec_N_dBmHz"] = dBm[noiseDensity[#, p]] & /@ fs;
+   Do[am = amFingerprint[p, f, p["m2"]];
+    o["am_" <> ToString[Round[f/1.*^6]] <> "_dL_dB"] = am["dL_dB"];
+    o["am_" <> ToString[Round[f/1.*^6]] <> "_dphi"] = am["dphi_rad"];
+    o["am_" <> ToString[Round[f/1.*^6]] <> "_L0_dB"] = am["L0_dB"], {f, amFreqs}];
+   o];
+
+(* Interactive twin of the page's "Sheath modulation" tab: 4 sliders, one spectrum plot, one-line verdict. *)
+exptDModManipulate[] := Manipulate[
+   Module[{pars, q, s, a, fs = 10.^Range[0., 7., 0.02], etaV},
+    pars = <|"mach" -> mach, "h_km" -> h, "r_km" -> rk, "log10_eta" -> le, "tau_s" -> tau|>;
+    q = exptDModModel[pars]; s = modSetup[pars]; a = apArea["lf75", 1.*^6]; etaV = 10.^le;
+    Column[{
+      Style["Sheath modulation  \[CenterDot]  physics " <> exptDVersion <> " (HYP estimate; SLW strength NOT claimed)", Bold],
+      Style["With the flicker pattern exploited: needs \[Eta] > " <> ToString[NumberForm[q["eta_all"], 2]] <>
+        " (75 m-class LF antenna, " <> ToString[tau] <> " s averaging). Dan's 433/1296 MHz: needs \[Eta] > " <>
+        ToString[NumberForm[q["r433_eta"], 2]] <> " / " <> ToString[NumberForm[q["r1296_eta"], 2]], 14, Bold],
+      ListLogLinearPlot[{
+        Table[{f, dBm[Max[etaV etaV sOne[s, f, a], 1.*^-300]]}, {f, fs}],
+        Table[{f, dBm[noiseDensity[f, s["p"]]]}, {f, fs}]}, Joined -> True,
+       PlotLegends -> {"SLW at your \[Eta] (HYP), dBm/Hz", "noise floor, dBm/Hz"},
+       AxesLabel -> {"frequency (Hz)", "dBm per Hz"}, ImageSize -> 520],
+      Style["Mack band " <> ToString[Round[q["f2"]/1000.]] <> " kHz (FACT) \[CenterDot] wake band " <> ToString[Round[q["fsh"]]] <> " Hz (FACT)", Gray],
+      Style["Cloud twin pending sync (" <> exptDVersion <> ")", Italic]}]],
+   {{mach, 25., "Mach number (speed / local speed of sound)"}, 5., 26.},
+   {{h, 70., "altitude (km)"}, 30., 90.},
+   {{rk, 100., "distance to the vehicle (km)"}, 1., 1000.},
+   {{le, -3., "log10 \[Eta] (SWEEP, HYP)"}, -12., 0.},
+   {{tau, 1., "averaging (dwell) time (s)"}, 0.001, 100.},
    SaveDefinitions -> True];

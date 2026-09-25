@@ -16,9 +16,10 @@ When published via GitHub Pages:
 
 - `index.html` — self-contained single-page educational app (CSS/JS inline; Google Fonts only). Toy sliders, uncalibrated.
 - `slw-detectability.html` + `js/slw-detect.js` — **first quantitative SLW/SW detectability estimate** (`expt-d-detect-v0.1`). FACT sheath physics (RAM-C II, Drude blackout, ITU-R P.372 noise, TinySA Ultra floor) + HYP Hively EED (Hively & Loebl 2019 Eq. B5/37, US 9,306,527 Eq. 15, ledger □C). Every unknown coupling (η, χ, κ_C) is a swept slider. Cloud twin pending sync.
-- `plots/` — Python reference figures (sim/run_analysis.py).
+- **v0.2 (`expt-d-detect-v0.2`, UI v0.2.0): new "Sheath modulation" tab** (`js/slw-modulation.js`). FACT flicker bands of the sheath (Mack second mode f₂ = C·U/(2δ), Parziale et al. 2015; wake oscillation f = St·U/D, Schmidt & Shepherd 2015 et al.; NO⁺ recombination decay, Torr et al. 1977; Kossyi et al. 1992) feed the unchanged v0.1 HYP SLW source; detection via Eckart/radiometer averaging (Rudnick 1961; Dicke 1946); FACT conventional AM/PM fingerprint on carriers crossing the sheath. JS vs Python `sim/expt_d_mod.py`: PASS 205633 / FAIL 0 (rel tol 1e-9). v0.1 formulas unchanged.
+- `plots/` — Python reference figures (sim/run_analysis.py; v0.2: sim/run_mod_analysis.py → figM*.png, modulation_spectrum.png, modulation_front_820px.png).
 - `sim/` — Python reference model `expt_d_model.py`, the fixed cross-check grid `grid.json`, `dump_js_outputs.mjs` + `compare_outputs.mjs` (JS vs Python: PASS 105985 / FAIL 0 at rel tol 1e-9), and results tables.
-- `wolfram/` — Mathematica twin `ExptDDetect.wl` (+ `_RunGrid.wl`, `_Publish.wl`). Not yet executed; JS-vs-WL compare owed.
+- `wolfram/` — Mathematica twin `ExptDDetect.wl` (+ `_RunGrid.wl`, `_Publish.wl`; v0.2 adds the modulation mirror and `ExptDMod_RunGrid.wl`). Not yet executed; JS-vs-WL compare owed.
 - `.nojekyll` — allow GitHub Pages to serve without Jekyll processing
 
 ## Tone / caveats
@@ -32,6 +33,10 @@ cd sim && python3 expt_d_model.py           # baseline record
 python3 run_analysis.py                     # plots + tables (needs numpy/matplotlib)
 node dump_js_outputs.mjs && python3 -c "import json,expt_d_model as m;json.dump({'version':m.VERSION,'records':[m.model(p) for p in json.load(open('grid.json'))]},open('py_outputs.json','w'))" && node compare_outputs.mjs js_outputs.json py_outputs.json 1e-9
 wolframscript -file ../wolfram/ExptDDetect_RunGrid.wl && node compare_outputs.mjs js_outputs.json wl_outputs.json 1e-9   # owed
+# v0.2 sheath modulation
+python3 run_mod_analysis.py
+node dump_js_mod.mjs && python3 dump_py_mod.py && node compare_outputs.mjs js_mod_outputs.json py_mod_outputs.json 1e-9
+wolframscript -file ../wolfram/ExptDMod_RunGrid.wl && node compare_outputs.mjs js_mod_outputs.json wl_mod_outputs.json 1e-9   # owed
 ```
 
 ## Citation

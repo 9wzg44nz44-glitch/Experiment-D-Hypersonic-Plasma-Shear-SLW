@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="format-detection" content="telephone=no">
-<meta name="description" content="Experiment D — first quantitative SLW/SW detectability estimate for a hypersonic plasma sheath: FACT sheath physics (RAM-C II) + HYP Hively EED, parametric sweeps over unknown couplings. Not flight data.">
-<title>Experiment D · Could a receiver hear it? (physics expt-d-detect-v0.1 · UI v0.1.1)</title>
+<meta name="description" content="Experiment D — SLW/SW detectability estimate for a hypersonic plasma sheath: FACT sheath physics (RAM-C II) + HYP Hively EED, parametric sweeps over unknown couplings; v0.2 adds the sheath modulation (flicker) study. Not flight data.">
+<title>Experiment D · Could a receiver hear it? (physics expt-d-detect-v0.2 · UI v0.2.0)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -110,6 +110,20 @@ ol.chain{padding-left:1.2rem} ol.chain>li{margin:.5em 0}
 .btn2{font:600 .88rem var(--font-b);background:transparent;color:var(--shear);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
 @media (max-width:600px){ .simple{grid-template-columns:1fr} .wrap{padding:18px 14px 60px} body{font-size:16px} .meters{grid-template-columns:repeat(2,1fr)} .eq{font-size:.76rem} header.top .inner{gap:8px} .ver{display:none} }
 ol.chain{font-family:var(--font-b);font-size:.95rem;white-space:normal;background:none;border:0;overflow:visible}
+
+/* ---- v0.2 sheath-modulation tab ---- */
+.tabs button.new{border-color:#7fe0a8;box-shadow:0 0 0 1px rgba(127,224,168,.35) inset}
+.tabs button.new .nb{display:inline-block;font:700 .66rem var(--font-b);letter-spacing:.06em;text-transform:uppercase;background:#7fe0a8;color:#061018;border-radius:999px;padding:2px 7px;margin-left:6px;vertical-align:middle}
+.tabs button.new[aria-expanded=true] .nb{background:#061018;color:#7fe0a8}
+details.sub{background:#0e1626;border:1px solid var(--line);border-radius:12px;margin:10px 0;padding:0 14px}
+details.sub>summary{cursor:pointer;min-height:48px;display:flex;align-items:center;font-weight:700;font-size:1rem;list-style:none;padding:8px 0}
+details.sub>summary::-webkit-details-marker{display:none}
+details.sub>summary::before{content:"▸";margin-right:10px;color:var(--accent);font-size:1.1rem}
+details.sub[open]>summary::before{content:"▾"}
+details.sub[open]{padding-bottom:12px}
+.controls.big label{font-size:.92rem;background:#0a101c;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.controls.big select{min-height:44px}
+#p-mod .hero-verdict .big{font-size:clamp(1.15rem,3.4vw,1.55rem)}
 </style>
 </head>
 <body>
@@ -158,9 +172,10 @@ ol.chain{font-family:var(--font-b);font-size:.95rem;white-space:normal;backgroun
     <input id="log10_eta" type="range" min="-12" max="0" step="0.1" value="-3" aria-label="log10 eta">
   </div>
 </div>
-<p class="tinyline"><span id="verLine"></span> · Cloud twin pending sync · <a href="#" data-open="p-version">details</a></p>
+<p class="tinyline"><span id="verLine"></span> · Cloud twin pending sync (<span class="verCloudX"></span>) · <a href="#" data-open="p-version">details</a> · <b>New:</b> <a href="#" data-open="p-mod">Sheath modulation</a> (does the flicker pattern help?)</p>
 
 <nav class="tabs" aria-label="More detail">
+  <button type="button" class="new" aria-expanded="false" aria-controls="p-mod">Sheath modulation<span class="nb">new</span></button>
   <button type="button" aria-expanded="false" aria-controls="p-how">How it works</button>
   <button type="button" aria-expanded="false" aria-controls="p-charts">Charts &amp; table</button>
   <button type="button" aria-expanded="false" aria-controls="p-full">Full controls</button>
@@ -169,6 +184,162 @@ ol.chain{font-family:var(--font-b);font-size:.95rem;white-space:normal;backgroun
   <button type="button" aria-expanded="false" aria-controls="p-sources">Sources</button>
   <button type="button" aria-expanded="false" aria-controls="p-version">Cross-checks / version</button>
 </nav>
+
+<!-- ============ SHEATH MODULATION (new in v0.2) ============ -->
+<section class="panel" id="p-mod" hidden>
+<h3>Does the sheath's flicker pattern help find the vehicle?</h3>
+<p style="margin-top:0">The plasma around a hypersonic vehicle does not sit still. It flickers at a few rhythms that are set by the airflow and have been measured in wind tunnels <span class="tag">FACT</span>. <em>If</em> Hively's SLW existed <span class="tag hyp">HYP</span>, it would flicker at those same rhythms, so a receiver that knows the rhythm can average for longer and dig deeper into the noise. This tab works out how much that helps. <b>It does not claim that an SLW exists or how strong one would be.</b></p>
+
+<div id="modVerdict" class="hero-verdict" aria-live="polite">
+  <div class="big" id="mBig">—</div>
+  <div class="fine" id="mFine"></div>
+</div>
+
+<div class="simple">
+  <div class="ctl">
+    <span class="name">Mach number <span class="tag">FACT</span></span><output class="val" id="om_mach"></output>
+    <div class="def"><b>Mach</b> = vehicle speed ÷ local speed of sound. It sets the flow speed <b>U</b> (m/s), and U sets every flicker frequency below.</div>
+    <input id="m_mach" type="range" min="5" max="26" step="0.5" value="25" aria-label="Mach number">
+  </div>
+  <div class="ctl">
+    <span class="name">Altitude <span class="tag">FACT</span></span><output class="val" id="om_h"></output>
+    <div class="def">Height above sea level in km. Thinner air higher up means fewer collisions, which changes the plasma's electric current.</div>
+    <input id="m_h" type="range" min="30" max="90" step="1" value="70" aria-label="Altitude in km">
+  </div>
+  <div class="ctl">
+    <span class="name">Distance to the vehicle</span><output class="val" id="om_r"></output>
+    <div class="def">Receiver-to-vehicle distance in km. The same slider as on the main view.</div>
+    <input id="m_r" type="range" min="0" max="3" step="0.01" value="2" aria-label="Distance in km (log scale)">
+  </div>
+  <div class="ctl">
+    <span class="name">Unknown coupling η <span class="tag hyp">HYP</span> <span class="tag sweep">SWEEP</span></span><output class="val" id="om_eta"></output>
+    <div class="def"><b>η</b> (eta) is the fraction of the flickering plasma current that would launch an SLW if Hively is right. Standard physics says 0. Nobody has measured it.</div>
+    <input id="m_eta" type="range" min="-12" max="0" step="0.1" value="-3" aria-label="log10 eta">
+  </div>
+</div>
+
+<div class="plotbox"><canvas id="pMod" style="height:300px" aria-label="Received modulation spectrum vs noise floor"></canvas></div>
+<p class="legend"><i style="background:#3db8a0;height:4px"></i>SLW at your η, per hertz <span class="tag hyp">HYP</span> <i style="background:#7ec8ff;height:2px"></i>its broadband-turbulence part <i style="background:#ffffff"></i>noise floor per hertz <span class="tag">FACT</span> <i style="background:rgba(127,224,168,.5);height:10px"></i>Mack band <i style="background:rgba(255,160,70,.55);height:10px"></i>wake band <i style="background:#fff;height:2px;border-top:2px dashed #fff"></i>“detect line” after averaging (signal above it = detected) · grey = too close to use the far-distance formula</p>
+<p class="tinyline" id="mSet"></p>
+
+<div class="subs">
+<details class="sub"><summary>1 · What makes the sheath flicker? The four sources, with numbers</summary>
+<div style="overflow-x:auto"><table class="res" id="mBands"></table></div>
+<p class="legend"><b>Narrowband</b> = a recognisable “fingerprint” at a predictable frequency. <b>Broadband</b> = hiss spread over a wide range, useful only for plain averaging. The <b>frequencies</b> are measured flow physics <span class="tag">FACT</span>. How strongly each one makes the electron density flicker (the rms fraction <b>m</b>) has no flight measurement, so each m is a slider in section 5 <span class="tag asm">ASSUMPTION</span>.</p>
+<ul class="tight">
+<li><b>(a) Mack second mode</b>: sound-like waves trapped in the thin, smooth (laminar) boundary layer on the vehicle's skin. Their frequency is <b>f₂ = C·U<sub>E</sub>/(2δ)</b>, where <b>U<sub>E</sub></b> is the flow speed at the edge of the boundary layer, <b>δ</b> is the layer's thickness, and <b>C</b> ≈ 0.6–0.9 is a measured constant. Measured values: C = 0.63–0.69 with f₂ = 580–1200 kHz on a cone in the Caltech T5 tunnel (Parziale, Shepherd &amp; Hornung 2015, Table 3). HIFiRE-1 flight stability analysis gave 400–725 kHz at transition (Kimmel et al. 2019). The peak is about 20 % wide (read by eye from Parziale et al. Figs 6 and 9). <span class="tag">FACT</span> Here we take U<sub>E</sub> ≈ U and use the page's shear-layer δ <span class="tag asm">ASSUMPTION</span>.</li>
+<li><b>(b) Broadband turbulence</b>: once the layer turns turbulent, the flicker becomes hiss. This is the v0.1 model: flat up to S/2π, then falling as f<sup>−5/3</sup> <span class="tag asm">ASSUMPTION</span>. Parziale et al. show the narrow Mack peak broadening into exactly this kind of hiss as the flow transitions <span class="tag">FACT</span>.</li>
+<li><b>(c) Wake oscillation (“peel-off”)</b>: behind the vehicle the flow separates and the near wake oscillates at <b>f<sub>sh</sub> = St·U/D</b>, where <b>D</b> is the base diameter and <b>St</b> is the Strouhal number. Measured at Mach 3–6 on cylinders: St ≈ 0.2 (hydrodynamic mode) and 0.30–0.50 (acoustic-feedback mode) (Schmidt &amp; Shepherd 2015; Awasthi et al. 2022; Thasu &amp; Duvvuri 2022) <span class="tag">FACT</span>. Carrying the cylinder values over to an axisymmetric vehicle base is an <span class="tag asm">ASSUMPTION</span>.</li>
+<li><b>(d) Recombination</b>: the plasma swept into the wake loses its electrons by recombining with NO⁺ ions at the rate coefficient α = 4.2×10⁻⁷ (T<sub>e</sub>/300)<sup>−0.85</sup> cm³/s (Torr, St-Maurice &amp; Torr 1977) <span class="tag">FACT</span>. So n<sub>e</sub>(t) = n₀/(1 + α n₀ t). Only the electrons that survive to the oscillating near wake (one diameter behind the base, <span class="tag asm">ASSUMPTION</span>) can carry the wake flicker. This is the decay envelope. Denser plasma dies faster, so at n<sub>e</sub> = 10²⁰ almost nothing survives. Electron attachment to O₂ (Kossyi et al. 1992) is shown for scale, but in hot (≳1000 K) gas the reverse detachment is faster, so it is not used.</li>
+</ul>
+</details>
+
+<details class="sub"><summary>2 · Receivers compared: v0.1 single look vs v0.2 with averaging</summary>
+<div style="overflow-x:auto"><table class="res" id="mRx"></table></div>
+<p class="legend">Numbers are the <b>smallest η that would be detected</b>: green = some η ≤ 1 works, red = impossible. <b>v0.1</b> = one look in the 30 kHz receiver bandwidth. <b>v0.2</b> = the same receiver averaging for the dwell time τ, weighting frequencies by the known flicker pattern. <b>λ²/4π</b> is the collecting area of an antenna resonant at that frequency (<span class="tag hyp">HYP</span> reciprocity, HL2019 §VI, as in v0.1). <b>kr</b> = 2π × distance ÷ wavelength. Below about 1, the receiver is in the near field, where the far-distance formula does not apply.</p>
+</details>
+
+<details class="sub"><summary>3 · Why knowing the pattern helps: the averaging math</summary>
+<p><b>Plain words:</b> noise jitters randomly, but its <em>average</em> is steady. A faint signal that is itself noise-like shows up as a tiny rise in the average power. Averaging for longer, and over the right frequencies, makes that rise measurable. Knowing where the flicker lives tells you which frequencies to add up, and with what weight.</p>
+<p class="eq"><span class="tag">FACT</span> optimum detector for a weak noise-like signal with a known spectrum (Eckart filter + square-law detector + averaging; Rudnick 1961):
+   d² = τ · ∫ ( s(f) / n(f) )² df          detect when d ≥ d_th
+   s(f) = received signal power per hertz,  n(f) = noise power per hertz,  τ = dwell (averaging) time,  d = “deflection” (how many noise-standard-deviations the average rises)
+<span class="tag">FACT</span> flat band of width B:  d = (S/N)·√(B·τ)   (the radiometer equation, Dicke 1946)
+<span class="tag hyp">HYP</span> s(f) = η² · s₁(f)  →  smallest detectable  η_th = [ d_th² / (τ ∫ (s₁/n)² df) ]^(1/4)
+   so η_th falls only as τ^(−1/4): 10 000× longer averaging lowers η_th 10×.
+   v0.1 is the special case of one look: B·τ = 1, d_th = 1 (“SNR = 0 dB”).
+<span class="tag">FACT</span> a pure, steady tone would do better: SNR = η² P τ / n(f)  (bin width 1/τ, coherent FFT gain). The sheath has no pure tone (the Mack peak is about 20 % wide and made of wave packets), so this is shown only as an upper bound.</p>
+<p class="legend">d_th = 1 matches v0.1's “SNR 0 dB” convention. A confident detection would need d ≈ 5, which raises every η_th by √5 ≈ 2.2 (section 5). Real receivers drift: averaging to d = 1 at B·τ = 3×10⁴ needs gain stable to better than 1/√(Bτ) ≈ 0.6 %. That calls for a calibrated radiometer. A TinySA as-is does not meet it.</p>
+</details>
+
+<details class="sub"><summary>4 · Carrier or no carrier? SLW flicker vs the ordinary radio fingerprint</summary>
+<p><b>Under Hively's source term</b> <span class="tag hyp">HYP</span>, the SLW is sourced by charge non-conservation, ∂ρ/∂t + ∇·J (ρ = charge per m³, J = current density). In this model J is the plasma's own current (driven by motion through Earth's steady magnetic field) and it flickers with the electron density. There is <b>no radio-frequency carrier</b> in the source, so the SLW would come out <b>at the flicker frequencies themselves</b> (baseband: Hz to MHz), with no sidebands near 433 or 1296 MHz. At those bands only the weak tail of the turbulent hiss remains, and knowing the pattern does not help there.</p>
+<p><b>Ordinary radio, which exists whether or not SLWs do</b> <span class="tag">FACT</span>: any carrier that passes through the sheath (the vehicle's own telemetry, a radar echo, GPS) is amplitude- and phase-modulated by the same flicker. It picks up <b>sidebands at carrier ± f₂ and ± f<sub>sh</sub></b>. This “parasitic modulation” has been measured in the lab with 50–100 kHz density oscillations (Yang et al. 2019) and modelled for flight (Yang et al. 2015; Roberds et al. 2024). The table evaluates the unchanged v0.1 plasma-slab formulas at n<sub>e</sub>(1 ± m₂):</p>
+<div style="overflow-x:auto"><table class="res" id="mAM"></table></div>
+<p class="legend">When the mean loss is huge (blackout), the modulation is there but the carrier is buried. Above the plasma frequency the carrier gets through and carries the flicker pattern. This conventional fingerprint is the realistic way the flicker helps detection.</p>
+</details>
+
+<details class="sub"><summary>5 · Modulation settings (advanced)</summary>
+<div class="controls big">
+  <label>Averaging (dwell) time τ, seconds (log₁₀) <output id="om_tau"></output><input id="m_tau" type="range" min="-3" max="3" step="0.05" value="0"></label>
+  <label>Detection threshold d<sub>th</sub> <select id="m_dth"><option value="1" selected>1: same convention as v0.1 (SNR 0 dB)</option><option value="3">3: likely</option><option value="5">5: confident</option></select></label>
+  <label>Antenna for the plot and verdict <select id="m_listen"><option value="lf75" selected>75 m-class LF antenna, A = 7.2×10³ m² (v0.1's 1 MHz antenna)</option><option value="hub">Dan's small Hively antenna, π(5 cm)² × 0.5</option></select></label>
+  <label>Mack constant C (0.6–0.9; T5 measured 0.63–0.69) <span class="tag">FACT</span> <output id="om_C"></output><input id="m_C" type="range" min="0.6" max="0.9" step="0.01" value="0.65"></label>
+  <label>Mack band width (fraction of f₂) <span class="tag asm">ASSUMPTION</span> <output id="om_b2"></output><input id="m_b2" type="range" min="0.05" max="0.5" step="0.01" value="0.2"></label>
+  <label>Mack flicker m₂: rms δn<sub>e</sub>/n<sub>e</sub> (log₁₀) <span class="tag asm">ASSUMPTION</span> <output id="om_m2"></output><input id="m_m2" type="range" min="-4" max="-0.5" step="0.05" value="-2"></label>
+  <label>Base diameter D (m) <output id="om_D"></output><input id="m_D" type="range" min="0.5" max="5" step="0.1" value="1"></label>
+  <label>Strouhal number St (0.2 hydrodynamic … 0.5 acoustic) <span class="tag">FACT</span> <output id="om_St"></output><input id="m_St" type="range" min="0.1" max="0.5" step="0.01" value="0.2"></label>
+  <label>Wake band width (fraction of f<sub>sh</sub>) <span class="tag asm">ASSUMPTION</span> <output id="om_bsh"></output><input id="m_bsh" type="range" min="0.05" max="0.5" step="0.01" value="0.2"></label>
+  <label>Wake flicker m<sub>sh</sub>: rms δn<sub>e</sub>/n<sub>e</sub> (log₁₀; no source found) <span class="tag asm">ASSUMPTION</span> <output id="om_msh"></output><input id="m_msh" type="range" min="-3" max="-0.3" step="0.05" value="-1"></label>
+  <label>Near-wake temperature T<sub>w</sub> (K, for the chemistry rates) <span class="tag asm">ASSUMPTION</span> <output id="om_Tw"></output><input id="m_Tw" type="range" min="1000" max="6000" step="100" value="3000"></label>
+  <label>Oscillating-wake distance behind the base (in D) <span class="tag asm">ASSUMPTION</span> <output id="om_xs"></output><input id="m_xs" type="range" min="0.5" max="5" step="0.1" value="1"></label>
+</div>
+<p class="legend">The broadband turbulence level (δn/n), shear rate S, layer thickness δ, plasma density n<sub>e</sub> and receiver settings live in <a href="#" data-open="p-full">Full controls</a> and on the main view. To mimic a smooth (laminar) sheath where the Mack waves dominate, turn the turbulence level down there.</p>
+<p class="legend">Readouts: <span id="mRead"></span></p>
+</details>
+
+<details class="sub"><summary>6 · All equations new in v0.2, with symbols and sources</summary>
+<p class="eq"><span class="tag">FACT</span> E1  Mack second mode:  f₂ = C · U_E / (2δ),  0.6 &lt; C &lt; 0.9   (Demetriades 1977, quoted by Parziale, Shepherd &amp; Hornung 2015, JFM 781:87; their Table 3: C = 0.63–0.69)
+       U_E = flow speed at the boundary-layer edge (≈ U here, ASSUMPTION);  δ = boundary-layer thickness (m)
+<span class="tag">FACT</span> E2  wake oscillation:  f_sh = St · U / D,  St ≈ 0.2 … 0.5   (Schmidt &amp; Shepherd 2015, JFM 785:R3; Awasthi et al. 2022 JFM; Thasu &amp; Duvvuri 2022 PRFluids 7:L081401)
+<span class="tag">FACT</span> E3  NO⁺ dissociative recombination:  α = 4.2×10⁻⁷ (T_e/300)^(−0.85) cm³/s   (Torr, St-Maurice &amp; Torr 1977, JGR 82:3287)
+<span class="tag">FACT</span> E4  two-body loss law  dn_e/dt = −α n_e²  ⇒  n_e(t) = n₀ / (1 + α n₀ t);  τ_DR = 1/(α n₀)
+       survival at the oscillating wake:  n_e(t_s)/n₀ with t_s = x_s/U   (x_s = distance behind the base, ASSUMPTION)
+<span class="tag">FACT</span> E5  (scale only) Kossyi et al. 1992, T_e = T_g = T:  e+O₂+O₂ → O₂⁻+O₂: 1.4×10⁻²⁹ (300/T) e^(−600/T) cm⁶/s;  e+O₂+N₂ → O₂⁻+N₂: 1.07×10⁻³¹ (300/T)² e^(−70/T) cm⁶/s;
+       O₂⁻+O₂ → e+2O₂: 2.7×10⁻¹⁰ (T/300)^0.5 e^(−5590/T) cm³/s;   ν_att = k₄₅[O₂]² + k₄₆[O₂][N₂],  ν_det = k₅₇[O₂]  (freestream air, USSA-1976)
+<span class="tag asm">ASSUMPTION</span> E6  chemistry corner  f_chem = 1/(2π τ_DR)  (shown for scale: above it the electrons are “frozen” and simply follow the gas density)
+<span class="tag asm">ASSUMPTION</span> E7  band shape (no source; a representation chosen here): top-hat of full width b·f:  S_I,k(f) = I_k² / (b_k f_k) inside the band
+       I_k = m_k · J · δ · √A_s  (the same form as v0.1's I_src);  I_sh also × survival (E4)
+<span class="tag">FACT</span> E8  independent flicker sources add in power:  S_I = S_turb (v0.1) + S_Mack + S_wake
+<span class="tag hyp">HYP</span>  E9  received SLW power per hertz:  s(f) = η² · 2 Z₀ S_I(f) A_rx / (4π r)² · 10^(−χ A_sh(f)/10)   (Hively &amp; Loebl 2019 Eq. B5 per hertz, with v0.1's I_pk = √2 I_rms)
+<span class="tag">FACT</span> E10 noise per hertz  n(f) = (v0.1 shielded-receiver floor)/RBW   (TinySA spec density ⊕ ITU-R P.372 F_a − SE; P.372 extrapolated below 0.3 MHz, ASSUMPTION)
+<span class="tag">FACT</span> E11 Eckart/radiometer detection  d² = τ ∫ (s/n)² df,  η_th = [d_th²/(τ ∫(s₁/n)² df)]^(1/4)   (Rudnick 1961 J. Appl. Phys. 32:140; Dicke 1946 RSI 17:268)
+<span class="tag">FACT</span> E12 pure-tone bound  SNR = η² P τ / n   (standard coherent FFT gain; not physical for these bands)
+<span class="tag">FACT</span> E13 conventional AM/PM:  ΔL = L(n_e(1+m)) − L(n_e(1−m)),  Δφ = (2πf/c)·d·[Re n(1+m) − Re n(1−m)]   (the v0.1 Drude slab evaluated twice; no new physics)</p>
+<p class="legend">Symbols: <b>S_I(f)</b> = current power per hertz (A²/Hz); <b>m</b> = rms fractional flicker of electron density; <b>J, δ, A_s, S, Z₀, A_rx, χ, A_sh, r</b> as defined in the “FACT vs HYP” tab; <b>τ</b> = averaging time; <b>d</b> = deflection; <b>b</b> = band width as a fraction of its centre frequency; <b>k₄₅…</b> = reaction rate coefficients; <b>[O₂]</b> = oxygen molecules per m³. Numerical integrals use 200 midpoints across a band and 1200 log-spaced points from 1 Hz to 10 MHz (only where kr ≥ 1), identically in JS, Python and Wolfram.</p>
+</details>
+
+<details class="sub"><summary>7 · Honest verdict, in plain sentences</summary>
+<ul class="tight">
+<li><b>The flicker is real</b> <span class="tag">FACT</span>: a narrow Mack band at about 100 kHz – 1 MHz (it tracks U/δ), wake oscillation at about 100 Hz – 3 kHz (it tracks U/D), and broadband hiss once the sheath is turbulent. Recombination clears the wake plasma within centimetres to metres behind the vehicle when n<sub>e</sub> ≥ 10¹⁸.</li>
+<li><b>An SLW would be baseband</b> <span class="tag hyp">HYP</span>: under Hively's source term it would come out at the flicker frequencies themselves. There is no carrier and no sidebands at 433/1296 MHz.</li>
+<li><b>Dan's 433/1296 MHz antennas: still no.</b> Averaging helps any noise-like signal, but at the baseline (100 km) the needed η only drops from about 5 300 / 13 000 (v0.1) to about 400 / 1 000 (1 s) and 130 / 320 (100 s). Only in the extreme n<sub>e</sub> = 10²⁰ case at 10 km would 433 MHz reach η ≈ 0.4 (1 s averaging, needing a stable radiometer).</li>
+<li><b>The natural sensor is an LF receiver tuned to the Mack band (hundreds of kHz).</b> At the baseline and 100 km: η &gt; 1.2×10⁻⁴ with a ~310 m resonant antenna (1 s), or η &gt; 3×10⁻⁴ using all bands on the fixed 75 m-class antenna, versus v0.1's 0.025 at 1 MHz. Most of that gain comes from averaging and from using the whole low-frequency band. At the assumed 1 % amplitude the Mack line is more a <em>fingerprint</em> (a frequency you can predict) than extra power.</li>
+<li><b>The wake band is a poor sensor</b>: it would need a resonant antenna tens of km long, its wavelength is hundreds of km, so at typical ranges of tens of km the receiver sits in the near field, and it competes with strong atmospheric noise. The wake plasma also recombines quickly.</li>
+<li><b>The ordinary radio fingerprint exists regardless of SLW</b> <span class="tag">FACT</span>: telemetry, radar echoes or GPS crossing the sheath carry AM/PM sidebands at f₂ and f<sub>sh</sub>. That is the realistic way the flicker pattern helps detection.</li>
+<li><b>Nothing here says how strong an SLW would be.</b> η stays a sweep. A null result from an LF Mack-band listener would set an upper bound on η (roughly ±2–3 decades from the measured-physics inputs alone, as in v0.1).</li>
+</ul>
+</details>
+
+<details class="sub"><summary>8 · Sources for this tab</summary>
+<ul class="tight" style="font-size:.92rem">
+<li>Parziale, N. J., Shepherd, J. E. &amp; Hornung, H. G. (2015) Observations of hypervelocity boundary-layer instability. J. Fluid Mech. 781, 87–112. <a href="https://doi.org/10.1017/jfm.2015.489">doi:10.1017/jfm.2015.489</a> (open PDF: <a href="https://authors.library.caltech.edu/61011/">authors.library.caltech.edu/61011</a>). f = C U<sub>E</sub>/(2δ), Table 3, Figs 6 and 9.</li>
+<li>Kimmel, R. L. et al. (2019) First and Fifth HIFiRE Flight and Ground Tests. J. Spacecraft Rockets 56(2), 421–431. <a href="https://doi.org/10.2514/1.A34287">doi:10.2514/1.A34287</a> (second-mode 400–725 kHz at flight transition, from stability analysis).</li>
+<li>Schmidt, B. E. &amp; Shepherd, J. E. (2015) Oscillations in cylinder wakes at Mach 4. J. Fluid Mech. 785, R3. <a href="https://doi.org/10.1017/jfm.2015.668">doi:10.1017/jfm.2015.668</a> (St<sub>D</sub> 0.30–0.50).</li>
+<li>Awasthi, M., McCreton, S., Moreau, D. J. &amp; Doolan, C. J. (2022) Coherent oscillations and acoustic waves in a supersonic cylinder wake. J. Fluid Mech. <a href="https://www.cambridge.org/core/journals/journal-of-fluid-mechanics/article/coherent-oscillations-and-acoustic-waves-in-a-supersonic-cylinder-wake/B64A42EFD2896ED6E338BA0500EF87A0">Cambridge Core</a> (St ≈ 0.2 hydrodynamic, 0.42 aeroacoustic, Mach 3).</li>
+<li>Thasu, P. S. &amp; Duvvuri, S. (2022) Strouhal number universality in high-speed cylinder wake flows. Phys. Rev. Fluids 7, L081401. <a href="https://doi.org/10.1103/PhysRevFluids.7.L081401">doi:10.1103/PhysRevFluids.7.L081401</a></li>
+<li>Torr, M. R., St.-Maurice, J.-P. &amp; Torr, D. G. (1977) J. Geophys. Res. 82, 3287. <a href="https://doi.org/10.1029/JA082i022p03287">doi:10.1029/JA082i022p03287</a> (NO⁺ recombination 4.2×10⁻⁷ (T<sub>e</sub>/300)<sup>−0.85</sup> cm³/s).</li>
+<li>Kossyi, I. A., Kostinsky, A. Yu., Matveyev, A. A. &amp; Silakov, V. P. (1992) Kinetic scheme of the non-equilibrium discharge in nitrogen–oxygen mixtures. Plasma Sources Sci. Technol. 1, 207. <a href="https://doi.org/10.1088/0963-0252/1/3/011">doi:10.1088/0963-0252/1/3/011</a> (R45, R46, R57).</li>
+<li>Rudnick, P. (1961) Likelihood detection of small signals in stationary noise. J. Appl. Phys. 32, 140. <a href="https://doi.org/10.1063/1.1735969">doi:10.1063/1.1735969</a> (Eckart filter + square law + smoothing).</li>
+<li>Dicke, R. H. (1946) The measurement of thermal radiation at microwave frequencies. Rev. Sci. Instrum. 17, 268. <a href="https://doi.org/10.1063/1.1770483">doi:10.1063/1.1770483</a> (radiometer sensitivity).</li>
+<li>Yang, M., Li, X., Xie, K. &amp; Liu, Y. (2015) Parasitic modulation of electromagnetic signals caused by time-varying plasma. Phys. Plasmas 22, 022101. <a href="https://doi.org/10.1063/1.4907904">doi:10.1063/1.4907904</a></li>
+<li>Yang, M. et al. (2019) Intra-pulse modulation of the linear frequency modulated pulse caused by time-varying plasma. AIP Advances 9, 055102. <a href="https://doi.org/10.1063/1.5080619">doi:10.1063/1.5080619</a> (measured 50 kHz density oscillation → 50 kHz AM and sidebands).</li>
+<li>Roberds, N. et al. (2024) Parasitic modulation of microwave signals by a hypersonic plasma layer. IEEE Trans. Plasma Sci. 52, 672. <a href="https://doi.org/10.1109/TPS.2024.3370112">doi:10.1109/TPS.2024.3370112</a></li>
+<li>Plus the v0.1 sources (Sources tab): Hively &amp; Loebl 2019 (Eq. B5), RAM-C II reports, ITU-R P.372, USSA-1976, TinySA specification.</li>
+</ul>
+</details>
+
+<details class="sub"><summary>9 · Cross-check and version</summary>
+<ul class="tight">
+<li>Physics <code id="mVer"></code>. Engine: <a href="js/slw-modulation.js">js/slw-modulation.js</a> on top of the unchanged v0.1 engine <a href="js/slw-detect.js">js/slw-detect.js</a>.</li>
+<li><b>JS vs Python reference</b> (<a href="sim/expt_d_mod.py">sim/expt_d_mod.py</a>): 864 grid points × 238 outputs (including 57-point spectra), <b>PASS 205,633 / FAIL 0</b> at rel tol 1e-9, worst rel 2.4×10⁻¹².</li>
+<li><b>Regression</b>: with the flicker bands switched off and single-look averaging, v0.2 reproduces the v0.1 η on all 2,304 v0.1 grid points (worst rel 1.2×10⁻¹⁵). The v0.1 engine JS vs Python still gives PASS 105,985 / FAIL 0.</li>
+<li><b>Cloud twin pending sync (<span class="verCloudX"></span>).</b> The Wolfram twin (<a href="wolfram/ExptDDetect.wl">ExptDDetect.wl</a>, section “v0.2 Sheath modulation”, plus <code>ExptDMod_RunGrid.wl</code>) mirrors these formulas but has not been run. The JS-vs-Wolfram compare is owed.</li>
+<li>Python figures: <a href="plots/modulation_spectrum.png">received spectrum</a>, <a href="plots/figM1_source_spectrum.png">source spectra</a>, <a href="plots/figM3_chemistry_timescales.png">chemistry time scales</a>, <a href="plots/figM4_eta_vs_dwell.png">η vs averaging time</a>, <a href="plots/figM5_conventional_fingerprint.png">conventional AM/PM fingerprint</a>.</li>
+</ul>
+</details>
+</div>
+</section>
 
 <!-- ============ HOW IT WORKS ============ -->
 <section class="panel" id="p-how" hidden>
@@ -299,6 +470,7 @@ ol.chain{font-family:var(--font-b);font-size:.95rem;white-space:normal;backgroun
 
 <span class="tag">FACT</span> ordinary radio from the same flickering currents (tiny antennas of length δ; Balanis Eq. 4-16):  P = N_c Z₀ (π/3)(I_cell δ/λ)²,  then plasma loss, received on an ordinary dipole of area 1.5 λ²/4π  (N_c = A_s/δ² cells)
 <span class="tag">FACT</span> plasma glow (thermal emission):  T_b = T_e (1−|Γ|²);  P = k_B T_b RBW · 1.5 A_s/(4π r²)</p>
+<p class="legend">v0.2 adds 13 equations for the sheath flicker (modulation) study. They are listed with sources in the <a href="#" data-open="p-mod">Sheath modulation</a> tab, section 6.</p>
 </section>
 
 <!-- ============ ASSUMPTIONS ============ -->
@@ -347,6 +519,7 @@ ol.chain{font-family:var(--font-b);font-size:.95rem;white-space:normal;backgroun
 <li>Hively, L. M. &amp; Loebl, A. S., <em>Classical and extended electrodynamics</em>, Physics Essays 32(1), 112 (2019), <a href="https://doi.org/10.4006/0836-1398-32.1.112">doi:10.4006/0836-1398-32.1.112</a>: Eqs. 36–38, 44, App. A–B (Eq. B5), Table I.</li>
 <li>Hively, L. M., US Patent 9,306,527 B1 (2016), Eq. 15.</li>
 <li>Hively, L. M. &amp; Giakos, G. C., Int. J. Signal Imaging Syst. Eng. 5, 3 (2012), cited through HL2019.</li>
+<li>v0.2 sheath-modulation sources (Parziale et al. 2015; Kimmel et al. 2019; Schmidt &amp; Shepherd 2015; Awasthi et al. 2022; Thasu &amp; Duvvuri 2022; Torr et al. 1977; Kossyi et al. 1992; Rudnick 1961; Dicke 1946; Yang et al. 2015, 2019; Roberds et al. 2024) are listed in the <a href="#" data-open="p-mod">Sheath modulation</a> tab, section 8.</li>
 <li>Hub pages: <a href="https://9wzg44nz44-glitch.github.io/sw-vs-slw.html">SW vs SLW</a>, <a href="https://9wzg44nz44-glitch.github.io/c-nuclei.html">C × nuclei</a>, <a href="https://9wzg44nz44-glitch.github.io/fx1-snr.html">FX-1 SNR</a>.</li>
 <li><span class="tag hyp">illustration only</span> <a href="https://starfire.tech/O-Animator/Art-n-Science/">O-Animator · Art-n-Science</a>: a qualitative sketch of charged-medium organization in shear and vortex structures. Never used as a source of numbers.</li>
 </ul>
@@ -355,11 +528,11 @@ ol.chain{font-family:var(--font-b);font-size:.95rem;white-space:normal;backgroun
 <!-- ============ VERSION ============ -->
 <section class="panel" id="p-version" hidden>
 <ul class="tight">
-<li><b>Page layout:</b> <code id="verUI"></code> (novice layout; UI only).</li>
-<li><b>Physics:</b> <code id="verPhys"></code>. The engine <a href="js/slw-detect.js">js/slw-detect.js</a> is unchanged from the physics release.</li>
-<li><b>Cloud twin pending sync (<span id="verCloud"></span>).</b> The Wolfram Mathematica twin <a href="wolfram/ExptDDetect.wl">wolfram/ExptDDetect.wl</a> is written but has not been run (no Wolfram kernel on the build machine). Its Manipulate labels mirror this page.</li>
-<li><b>JS vs Python reference</b> (<a href="sim/expt_d_model.py">sim/expt_d_model.py</a>, 2,304-point grid × 46 outputs, rel tol 1e-9): <b>PASS 105,985 / FAIL 0</b>, re-run after this layout change.</li>
-<li><b>JS vs Wolfram:</b> owed. Run <code>wolfram/ExptDDetect_RunGrid.wl</code>, then <code>node sim/compare_outputs.mjs</code>.</li>
+<li><b>Page layout:</b> <code id="verUI"></code> (novice layout plus the new Sheath modulation tab).</li>
+<li><b>Physics:</b> <code id="verPhys"></code>. v0.2 adds the sheath-modulation engine <a href="js/slw-modulation.js">js/slw-modulation.js</a>. The v0.1 formulas in <a href="js/slw-detect.js">js/slw-detect.js</a> are unchanged (only its version string changed).</li>
+<li><b>Cloud twin pending sync (<span id="verCloud"></span>).</b> The Wolfram Mathematica twin <a href="wolfram/ExptDDetect.wl">wolfram/ExptDDetect.wl</a> (now including the v0.2 modulation section) is written but has not been run (no Wolfram kernel on the build machine). Its Manipulate labels mirror this page.</li>
+<li><b>JS vs Python reference</b> (<a href="sim/expt_d_model.py">sim/expt_d_model.py</a>, 2,304-point grid × 46 outputs, rel tol 1e-9): <b>PASS 105,985 / FAIL 0</b>, re-run for v0.2. Modulation engine vs <a href="sim/expt_d_mod.py">sim/expt_d_mod.py</a>: <b>PASS 205,633 / FAIL 0</b> (864 points × 238 outputs, worst rel 2.4×10⁻¹²).</li>
+<li><b>JS vs Wolfram:</b> owed (v0.1 engine and v0.2 modulation). Run <code>wolfram/ExptDDetect_RunGrid.wl</code> and <code>wolfram/ExptDMod_RunGrid.wl</code>, then <code>node sim/compare_outputs.mjs</code>.</li>
 <li>Repo: <a href="https://github.com/9wzg44nz44-glitch/Experiment-D-Hypersonic-Plasma-Shear-SLW">github.com/9wzg44nz44-glitch/Experiment-D-Hypersonic-Plasma-Shear-SLW</a></li>
 </ul>
 </section>
@@ -371,14 +544,17 @@ ol.chain{font-family:var(--font-b);font-size:.95rem;white-space:normal;backgroun
 </main>
 
 <script src="js/slw-detect.js"></script>
+<script src="js/slw-modulation.js"></script>
 <script>
 (function(){
   "use strict";
   const X = window.ExptDDetect, $ = (id) => document.getElementById(id);
-  const UI = "UI v0.1.1";
-  const PHYS = X.VERSION; // physics version string, unchanged
+  const UI = "UI v0.2.0";
+  const XM = window.ExptDMod;
+  const PHYS = XM.VERSION; // physics version string (v0.2: sheath modulation added)
   $("verTop").textContent = PHYS; $("verLine").textContent = UI + " · physics " + PHYS;
   $("verUI").textContent = UI; $("verPhys").textContent = PHYS; $("verCloud").textContent = PHYS; $("verFoot").textContent = UI + " · physics " + PHYS;
+  document.querySelectorAll(".verCloudX").forEach(el => el.textContent = PHYS); $("mVer").textContent = PHYS;
   // band presets: frequency + automatic collecting-area model (unchanged numbers)
   const BANDS = { "433":[433.92e6,"hub","433.92 MHz"], "1296":[1296e6,"hub","1296 MHz"], "30":[30e6,"hub","30 MHz"], "1":[1e6,"recip","1 MHz"] };
   const ORDER = ["1","30","433","1296"];
@@ -497,8 +673,116 @@ ol.chain{font-family:var(--font-b);font-size:.95rem;white-space:normal;backgroun
     series.forEach((s,k)=>{ line(ctx,L,lr.map((x,i)=>[x,s[i]]),cols[k],2,[]); ctx.fillStyle=cols[k]; ctx.fillText(BANDS[ORDER[k]][2],L.l+10,L.t+16+14*k); });
     line(ctx,L,lr.map(x=>[x,0]),"#ffffff",1.5,[4,3]); ctx.fillStyle="#fff"; ctx.fillText("η = 1",L.l+6,L.y(0)-4);
   }
+
+  // ================= v0.2 Sheath modulation tab =================
+  const SYNC = [["m_mach","mach"],["m_h","h_km"],["m_r","r_l"],["m_eta","log10_eta"]];
+  SYNC.forEach(([m, g]) => $(m).addEventListener("input", () => { $(g).value = $(m).value; }));
+  function modParams(p){
+    return Object.assign({}, p, {
+      tau_s: Math.pow(10, +$("m_tau").value), d_th: +$("m_dth").value, listen: $("m_listen").value,
+      C_mack: +$("m_C").value, b2: +$("m_b2").value, m2: Math.pow(10, +$("m_m2").value), D_m: +$("m_D").value,
+      St: +$("m_St").value, bsh: +$("m_bsh").value, msh: Math.pow(10, +$("m_msh").value), Tw_K: +$("m_Tw").value, xs_D: +$("m_xs").value
+    });
+  }
+  const fHz = (f) => f >= 1e6 ? (+(f/1e6).toPrecision(3))+" MHz" : f >= 1e3 ? (+(f/1e3).toPrecision(3))+" kHz" : (+f.toPrecision(3))+" Hz";
+  const fTime = (t) => t >= 1 ? (+t.toPrecision(3))+" s" : t >= 1e-3 ? (+(t*1e3).toPrecision(3))+" ms" : (+(t*1e6).toPrecision(3))+" µs";
+  const fx = (x) => { if (x===null||!isFinite(x)) return "—"; if (x>=0.01 && x<1e4) return fe(x); const e=Math.floor(Math.log10(x)); let m=x/Math.pow(10,e); if (+m.toFixed(1)>=10){m/=10;} return (m.toFixed(1)==="1.0"?"":m.toFixed(1)+"×")+"10"+sup(e+(+(x/Math.pow(10,e)).toFixed(1)>=10?1:0)); };
+  const okc = (e) => '<td class="'+(e<=1?"ok":"no")+'">'+fx(e)+'</td>';
+  function modLabels(p, o){
+    SYNC.forEach(([m, g]) => { $(m).value = $(g).value; });
+    $("om_mach").textContent = p.mach.toFixed(1)+" → U = "+(o.U/1e3).toFixed(2)+" km/s";
+    $("om_h").textContent = p.h_km+" km"; $("om_r").textContent = p.r_km.toFixed(p.r_km<10?2:0)+" km";
+    $("om_eta").textContent = tenPow(p.log10_eta);
+    $("om_tau").textContent = fTime(p.tau_s); $("om_C").textContent = p.C_mack.toFixed(2); $("om_b2").textContent = (p.b2*100).toFixed(0)+" %";
+    $("om_m2").textContent = (p.m2*100).toPrecision(2)+" %"; $("om_D").textContent = p.D_m.toFixed(1)+" m"; $("om_St").textContent = p.St.toFixed(2);
+    $("om_bsh").textContent = (p.bsh*100).toFixed(0)+" %"; $("om_msh").textContent = (p.msh*100).toPrecision(2)+" %"; $("om_Tw").textContent = p.Tw_K+" K"; $("om_xs").textContent = p.xs_D.toFixed(1)+" D";
+  }
+  function modVerdict(p, o){
+    const eta = Math.pow(10, p.log10_eta), ant = p.listen==="hub" ? "Dan's small antenna" : "75 m-class LF antenna";
+    const heard = o.dev_all >= p.d_th;
+    const v = $("modVerdict");
+    if (o.eta_all <= 1) {
+      v.className = "hero-verdict";
+      $("mBig").innerHTML = 'Using the flicker pattern: detectable only if η &gt; '+fx(o.eta_all)+' · your η '+tenPow(p.log10_eta)+': <span class="'+(heard?"yes":"nope")+'">'+(heard?"heard":"not heard")+'</span>';
+    } else {
+      v.className = "hero-verdict no";
+      $("mBig").innerHTML = 'Using the flicker pattern: <span class="nope">not detectable</span> for any η ≤ 1 (needs η = '+fx(o.eta_all)+')';
+    }
+    $("mFine").innerHTML = ant+', '+fTime(p.tau_s)+' averaging, '+p.r_km.toFixed(p.r_km<10?1:0)+' km, n<sub>e</sub> = '+tenPow(p.log10_ne)+' m⁻³ · v0.1 single look at 1 MHz needed η &gt; '+fx(o.r1M_eta1)+
+      ' · Dan\'s 433 / 1296 MHz with averaging: η &gt; '+fx(o.r433_eta)+' / '+fx(o.r1296_eta)+(o.r433_eta>1&&o.r1296_eta>1?' (impossible)':'')+
+      ' · <span class="tag hyp">HYP</span> estimate: the page does not claim that an SLW exists or how strong it is.';
+    $("mSet").innerHTML = 'Mack band '+fHz(o.f2)+' <span class="tag">FACT</span> · wake band '+fHz(o.fsh)+' <span class="tag">FACT</span> · wake electrons surviving: '+(o.surv*100).toPrecision(2)+' % · other inputs from the main view and Full controls.';
+  }
+  function modTables(p, o){
+    const bw = (lo, hi) => fHz(hi-lo);
+    $("mBands").innerHTML = '<tr><th>Source</th><th>Frequency now</th><th>Width</th><th>Type</th><th>Flicker m (rms δn<sub>e</sub>/n<sub>e</sub>)</th><th>Label</th></tr>'+
+      '<tr><td class="l">(a) Mack 2nd mode, f₂ = C·U/(2δ)</td><td>'+fHz(o.f2)+'</td><td>'+bw(o.f2_lo,o.f2_hi)+'</td><td class="l">narrowband fingerprint</td><td>'+(p.m2*100).toPrecision(2)+' %</td><td class="l"><span class="tag">FACT</span> f; <span class="tag asm">ASSUMPTION</span> m, width</td></tr>'+
+      '<tr><td class="l">(b) broadband turbulence (v0.1)</td><td>flat to '+fHz(o.It>0? p.fc_Hz : 0)+', then f<sup>−5/3</sup></td><td>very wide</td><td class="l">broadband hiss</td><td>'+(p.m_t*100).toPrecision(2)+' %</td><td class="l"><span class="tag asm">ASSUMPTION</span> (v0.1)</td></tr>'+
+      '<tr><td class="l">(c) wake oscillation, f<sub>sh</sub> = St·U/D</td><td>'+fHz(o.fsh)+'</td><td>'+bw(o.fsh_lo,o.fsh_hi)+'</td><td class="l">narrowband fingerprint</td><td>'+(p.msh*100).toPrecision(2)+' % × survival '+(o.surv).toPrecision(2)+'</td><td class="l"><span class="tag">FACT</span> f; <span class="tag asm">ASSUMPTION</span> m, width</td></tr>'+
+      '<tr><td class="l">(d) recombination decay (envelope)</td><td>corner '+fHz(o.f_chem)+'</td><td>—</td><td class="l">low-pass / decay</td><td>τ = '+fTime(o.tau_dr)+'; plasma lasts ~'+(+o.L_wake_m.toPrecision(2))+' m of wake</td><td class="l"><span class="tag">FACT</span> rate</td></tr>';
+    const kr = (x) => x < 1 ? '<span class="nope">'+(+x.toPrecision(2))+' (near field)</span>' : (+x.toPrecision(2))+'';
+    const qw = (m) => m >= 1000 ? (+(m/1000).toPrecision(2))+" km" : Math.round(m)+" m";
+    $("mRx").innerHTML = '<tr><th>Receiver</th><th>Antenna</th><th>v0.1: one look</th><th>v0.2: '+fTime(p.tau_s)+' averaging</th><th>Note</th></tr>'+
+      '<tr><td class="l">433.92 MHz (Dan)</td><td class="l">small Hively, π(5 cm)²×0.5</td>'+okc(o.r433_eta1)+okc(o.r433_eta)+'<td class="l">no flicker energy up here: turbulent tail only</td></tr>'+
+      '<tr><td class="l">1296 MHz (Dan)</td><td class="l">sleeve balun, π(5 cm)²×0.5</td>'+okc(o.r1296_eta1)+okc(o.r1296_eta)+'<td class="l">same</td></tr>'+
+      '<tr><td class="l">1 MHz, 30 kHz bandwidth</td><td class="l">75 m resonant, λ²/4π</td>'+okc(o.r1M_eta1)+okc(o.r1M_eta)+'<td class="l">v0.1\'s best case</td></tr>'+
+      '<tr><td class="l">Mack-band LF receiver ('+fHz(o.f2)+')</td><td class="l">resonant, λ²/4π = '+fe(o.rMack_A)+' m² (~'+qw(o.rMack_quarter_wave_m)+' quarter-wave)</td><td>—</td>'+okc(o.rMack_eta)+'<td class="l">kr = '+kr(o.rMack_kr)+'</td></tr>'+
+      '<tr><td class="l">Wake-band VLF receiver ('+fHz(o.fsh)+')</td><td class="l">resonant, λ²/4π (~'+qw(o.rShed_quarter_wave_m)+' quarter-wave: not buildable)</td><td>—</td>'+okc(o.rShed_eta)+'<td class="l">kr = '+kr(o.rShed_kr)+'; noise extrapolated</td></tr>'+
+      '<tr><td class="l">All bands (the plot)</td><td class="l">'+(p.listen==="hub"?"Dan's small antenna":"75 m-class, A = 7.2×10³ m²")+'</td><td>—</td>'+okc(o.eta_all)+'<td class="l">optimum weighting over 1 Hz–10 MHz (far field only)</td></tr>'+
+      '<tr><td class="l">&nbsp;&nbsp;Mack band only</td><td class="l">same</td><td>—</td>'+okc(o.eta_mack)+'<td class="l">the fingerprint on its own</td></tr>'+
+      '<tr><td class="l">&nbsp;&nbsp;pure-tone bound</td><td class="l">same</td><td>—</td>'+okc(o.eta_tone_mack)+'<td class="l">NOT physical: the Mack peak is ~20 % wide</td></tr>';
+    const car = [[434,"433.92 MHz"],[1296,"1296 MHz"],[2250,"2.25 GHz (S-band telemetry)"],[10000,"10 GHz (X-band radar)"]];
+    $("mAM").innerHTML = '<tr><th>Carrier crossing the sheath</th><th>Mean one-way loss</th><th>AM swing, peak-to-peak (±'+(p.m2*100).toPrecision(2)+' % n<sub>e</sub>)</th><th>Phase swing, peak-to-peak</th></tr>'+
+      car.map(([k,l]) => '<tr><td class="l">'+l+'</td><td>'+fd(o["am_"+k+"_L0_dB"])+' dB'+(o["am_"+k+"_L0_dB"]>40?' (blackout)':'')+'</td><td>'+(+Math.abs(o["am_"+k+"_dL_dB"]).toPrecision(2))+' dB</td><td>'+(+Math.abs(o["am_"+k+"_dphi"]).toPrecision(2))+' rad</td></tr>').join("");
+    $("mRead").textContent = "U = "+o.U.toFixed(0)+" m/s · mean sheet current I₀ = "+fe(o.I0)+" A · Mack current "+fe(o.I2)+" A rms · wake current "+fe(o.Ish)+" A rms · turbulence current "+fe(o.It)+
+      " A rms · α = "+fe(o.alpha)+" m³/s · τ_DR = "+fTime(o.tau_dr)+" · attachment "+fe(o.nu_att)+" /s vs detachment "+fe(o.nu_det)+" /s · A_listen = "+fe(o.A_listen)+" m²";
+  }
+  function modPlot(p, o){
+    const [ctx,W,H] = prep("pMod");
+    const NF = 360, fs = []; for (let i=0;i<=NF;i++) fs.push(Math.pow(10, 7*i/NF));
+    const sp = XM.spectrum(p, fs);
+    const S = sp.map(z => dbmW(z.S)), N = sp.map(z => dbmW(z.N)), T = sp.map(z => dbmW(z.St));
+    const fin = [].concat(S, N).filter(isFinite);
+    const ymax = Math.ceil((Math.max(...fin)+10)/20)*20, ymin = Math.max(ymax-220, Math.floor((Math.min(...fin)-10)/20)*20);
+    const L = {l:56, r:W-12, t:18, b:H-30, ymin, ymax};
+    L.x = (lf) => L.l + lf/7*(L.r-L.l); L.y = (v) => L.b - (v-ymin)/(ymax-ymin)*(L.b-L.t);
+    ctx.fillStyle="#0a101c"; ctx.fillRect(0,0,W,H);
+    const r = p.r_km*1e3, fmin = 299792458/(2*Math.PI*r);
+    if (fmin > 1) { ctx.fillStyle="rgba(154,171,191,.13)"; ctx.fillRect(L.l, L.t, L.x(Math.min(7,Math.log10(fmin)))-L.l, L.b-L.t); }
+    const band = (lo, hi, col) => { ctx.fillStyle=col; const x0=L.x(Math.log10(lo)), x1=L.x(Math.log10(hi)); ctx.fillRect(x0, L.t, Math.max(3,x1-x0), L.b-L.t); };
+    band(o.f2_lo, o.f2_hi, "rgba(127,224,168,.22)"); band(o.fsh_lo, o.fsh_hi, "rgba(255,160,70,.28)");
+    ctx.strokeStyle="#1c2a40"; ctx.fillStyle="#9aabbf"; ctx.font="12px IBM Plex Mono, monospace"; ctx.lineWidth=1;
+    const xl = ["1 Hz","10","100","1 kHz","10k","100k","1 MHz","10M"];
+    for (let d=0; d<=7; d++){ const x=L.x(d); ctx.beginPath(); ctx.moveTo(x,L.t); ctx.lineTo(x,L.b); ctx.stroke(); ctx.fillText(xl[d], Math.min(Math.max(x-14,2),W-46), H-10); }
+    for (let y=Math.ceil(ymin/20)*20; y<=ymax; y+=20){ const yy=L.y(y); ctx.beginPath(); ctx.moveTo(L.l,yy); ctx.lineTo(L.r,yy); ctx.stroke(); ctx.fillText(String(y),6,yy+4); }
+    ctx.fillText("dBm per Hz", L.l+6, L.t+12);
+    const ln = (arr, col, w, dash) => { ctx.beginPath(); let s=false; arr.forEach((v,i)=>{ if(!isFinite(v)) return; const X_=L.x(7*i/NF), Y_=L.y(Math.max(Math.min(v,ymax),ymin)); if(!s){ctx.moveTo(X_,Y_);s=true;} else ctx.lineTo(X_,Y_); }); ctx.strokeStyle=col; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.stroke(); ctx.setLineDash([]); };
+    ln(N, "#ffffff", 1.6); ln(T, "#7ec8ff", 1.4, [5,4]); ln(S, "#3db8a0", 2.6);
+    // detect lines (per band, after averaging)
+    [[o.f2_lo,o.f2_hi,"#7fe0a8","Mack"],[o.fsh_lo,o.fsh_hi,"#ffa046","wake"]].forEach(([lo,hi,col,lab]) => {
+      const fm = Math.sqrt(lo*hi), n = dbmW(XM.noiseDensity(fm, Object.assign({}, X.DEFAULTS, p)));
+      const thr = n + 10*Math.log10(p.d_th/Math.sqrt(Math.max(p.tau_s, 1/(hi-lo))*(hi-lo)));
+      if (thr < ymin || thr > ymax) return;
+      const x0=L.x(Math.log10(lo)), x1=L.x(Math.log10(hi));
+      ctx.strokeStyle=col; ctx.lineWidth=3; ctx.setLineDash([4,3]); ctx.beginPath(); ctx.moveTo(x0-10,L.y(thr)); ctx.lineTo(x1+10,L.y(thr)); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle=col; ctx.fillText(lab+" detect", Math.min(x1+12, W-96), L.y(thr)+4);
+    });
+    ctx.fillStyle="#7fe0a8"; ctx.fillText("Mack", Math.min(L.x(Math.log10(o.f2))-14, W-50), L.t+26);
+    ctx.fillStyle="#ffa046"; ctx.fillText("wake", L.x(Math.log10(o.fsh))-14, L.t+26);
+    if (fmin > 1) { ctx.fillStyle="#9aabbf"; ctx.fillText("near field", L.l+6, L.b-8); }
+  }
+  const dbmW = (W) => W > 0 ? 10*Math.log10(W/1e-3) : -Infinity;
+  function modUpdate(p){
+    const pm = modParams(p), o = XM.model(pm);
+    pm.fc_Hz = X.model(pm).fc_Hz;
+    modLabels(pm, o); modVerdict(pm, o);
+    modPlot(pm, o);
+    if (document.querySelector("#p-mod details.sub[open]")) modTables(pm, o);
+  }
+  document.querySelectorAll("#p-mod details.sub").forEach(d => d.addEventListener("toggle", () => { if (d.open) update(); }));
   function update(){
     const p=params(), q=X.model(p); labels(p,q); verdict(p,q);
+    if (!$("p-mod").hidden) modUpdate(p);
     if (!$("p-full").hidden) meters(p,q);
     if (!$("p-charts").hidden) { table(p); plotRange(p); plotEta(p); }
   }
