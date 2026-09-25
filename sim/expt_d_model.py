@@ -1,4 +1,4 @@
-"""Experiment D - SLW/SW detectability model (expt-d-detect-v0.1), Python reference implementation.
+"""Experiment D - SLW/SW detectability model (expt-d-detect-v0.3; v0.1 formulas + v0.3 receiver chain), Python reference implementation.
 
 Mirrors web/js/slw-detect.js (browser/node) and wolfram/ExptDDetect.wl (Mathematica twin) formula-for-formula.
 Labels: FACT = published / standard physics (cited in REPORT.md); HYP = Hively EED as printed (Hively & Loebl 2019,
@@ -6,7 +6,7 @@ US 9,306,527, hub ledger); ASSUMPTION = modelling choice made here; SWEEP = unkn
 """
 import math
 
-VERSION = "expt-d-detect-v0.2"
+VERSION = "expt-d-detect-v0.3"
 # FACT: CODATA 2018
 c = 299792458.0
 mu0 = 1.25663706212e-6
@@ -32,7 +32,64 @@ DB_PER_NP2 = 8.685889638065035  # 20/ln(10)
 DEFAULTS = dict(h_km=70, mach=25, log10_ne=18, nu_scale=1, log10_S=6, delta_m=0.01, B_uT=50, theta_deg=90,
                 mech="vxB", Te_K=6000, f_close=1, m_t=0.1, A_s=1, d_sh=0.05,
                 f_rx=30e6, rbw=30e3, aperture="hub", SE_dB=55, noise_env="quiet_rural",
-                log10_eta=-3, chi=0, log10_kappa=0, r_km=100)
+                log10_eta=-3, chi=0, log10_kappa=0, r_km=100,
+                # v0.3 receiver chain (default = TinySA alone = v0.2); LNA values are PLACEHOLDERS
+                rx_preset="tinysa", n_lna=0, cable_dB=0,
+                lna1_G_dB=21, lna1_NF_dB=3, lna2_G_dB=21, lna2_NF_dB=3, lna3_G_dB=21, lna3_NF_dB=3)
+
+# ---- v0.3 receiver back ends (see js/slw-detect.js for the quoted source lines) ----
+# FACT tinysa.org TinySA4 spec (LDS -102 dBm @30 kHz no LNA; -145 dBm @200 Hz with LNA, both at 30 MHz);
+# FACT airspy.com HF+ Discovery MDS -140.0 dBm @500 Hz (HF, 15 MHz); FACT Keysight N9040B data sheet 5992-0090EN p.9 DANL.
+UXA_TAB = [(3, 10, -100), (10, 100, -125), (100, 1e3, -130), (1e3, 9e3, -137), (9e3, 100e3, -141),
+           (100e3, 200e3, -152), (200e3, 500e3, -155), (500e3, 1e6, -159), (1e6, 10e6, -161), (10e6, 2.1e9, -165),
+           (2.1e9, 3.6e9, -163)]
+RX_PRESETS = {"tinysa": dict(ref=-102, bref=30e3), "tinysa_lna": dict(ref=-145, bref=200),
+              "airspy_hfd": dict(ref=-140, bref=500), "uxa_preamp": dict(table=True), "ideal": dict(ideal=True)}
+
+
+def uxa_danl(f):
+    t = UXA_TAB
+    if f <= t[0][0]:
+        return t[0][2]
+    if f >= t[-1][1]:
+        return t[-1][2]
+    v = -math.inf
+    for lo, hi, d in t:
+        if lo <= f <= hi and d > v:
+            v = d
+    return v
+
+
+def back_noise(preset, f, rbw):
+    q = RX_PRESETS[preset]
+    if q.get("ideal"):
+        return dbm(kB * T0 * rbw)
+    if q.get("table"):
+        return uxa_danl(f) + 10 * math.log10(rbw)
+    return q["ref"] + 10 * math.log10(rbw / q["bref"])
+
+
+def rx_chain(p, f, rbw):
+    """FACT Friis 1944 cascade; lossy line at T0: F = L, G = 1/L. Returns dict(kT0B, Nb, Nrx, Fsys, Ffront, stages)."""
+    kT0B = dbm(kB * T0 * rbw)
+    Nb = back_noise(p["rx_preset"], f, rbw)
+    st = []
+    if p["cable_dB"] > 0:
+        L = 10 ** (p["cable_dB"] / 10)
+        st.append((L, 1 / L))
+    for k in range(1, int(p["n_lna"]) + 1):
+        st.append((10 ** (p["lna%d_NF_dB" % k] / 10), 10 ** (p["lna%d_G_dB" % k] / 10)))
+    Fb = 10 ** ((Nb - kT0B) / 10)
+    if not st:
+        return dict(kT0B=kT0B, Nb=Nb, Nrx=Nb, Fsys=Fb, Ffront=Fb, dFback=0.0, stages=0)
+    F, G = st[0]
+    for Fi, Gi in st[1:]:
+        F += (Fi - 1) / G
+        G *= Gi
+    Ffront = F
+    dFback = (Fb - 1) / G
+    F += dFback
+    return dict(kT0B=kT0B, Nb=Nb, Nrx=kT0B + 10 * math.log10(F), Fsys=F, Ffront=Ffront, dFback=dFback, stages=len(st))
 
 
 def interp(xs, ys, x, logy):
@@ -116,17 +173,23 @@ def model(pin=None):
     r = p["r_km"] * 1e3
     Arx = lam * lam / (4 * math.pi) if p["aperture"] == "recip" else HUB_AEFF * HUB_ETA
     Atem = 1.5 * lam * lam / (4 * math.pi)
-    Nts = -102 + 10 * math.log10(p["rbw"] / 30e3)
-    kT0B = dbm(kB * T0 * p["rbw"])
+    ch = rx_chain(p, p["f_rx"], p["rbw"])
+    Nts, Nrx, kT0B = ch["Nb"], ch["Nrx"], ch["kT0B"]
     env = NOISE_ENV[p["noise_env"]]
     fMHz = p["f_rx"] / 1e6
     if env:
         Fa = env[0] - env[1] * math.log10(fMHz)
         Next_conv = kT0B + Fa
-        Nconv = sum_dbm(Nts, Next_conv)
-        Nhiv = sum_dbm(Nts, Next_conv - p["SE_dB"])
+        Nleak = Next_conv - p["SE_dB"]
+        Nconv = sum_dbm(Nrx, Next_conv)
+        Nhiv = sum_dbm(Nrx, Nleak)
+        l = 10 ** ((Fa - p["SE_dB"]) / 10)
+        margin = 10 * math.log10(ch["Fsys"]) - (Fa - p["SE_dB"])
     else:
-        Fa, Nconv, Nhiv = None, Nts, Nts
+        Fa, Nconv, Nhiv, Nleak = None, Nrx, Nrx, None
+        l, margin = 0.0, None
+    head_ideal = 10 * math.log1p((ch["Fsys"] - 1) / (1 + l)) / math.log(10)
+    head_gain = 10 * math.log1p(ch["dFback"] / (ch["Ffront"] + l)) / math.log(10)
     eta = 10 ** p["log10_eta"]
     kappa = 10 ** p["log10_kappa"]
     Sslw1 = Z0 * Ipk * Ipk / (4 * math.pi * r) ** 2
@@ -149,6 +212,9 @@ def model(pin=None):
         Isrc_A=Isrc, fc_Hz=fc, Fspec=Fspec, Iband_A=Iband, eps_r=er, eps_i=ei, n_re=n_re, n_im=n_im,
         alpha_Npm=alpha, Ash_dB=Ash_dB, Tint_dB=Tint_dB, Arx_m2=Arx, Atem_m2=Atem,
         Nts_dBm=Nts, Fa_dB=Fa, Nconv_dBm=Nconv, Nhiv_dBm=Nhiv,
+        Nrx_dBm=Nrx, NFsys_dB=10 * math.log10(ch["Fsys"]), kT0B_dBm=kT0B, Nleak_dBm=Nleak,
+        rx_dom="receiver" if (margin is None or margin >= 0) else "leak", rx_margin_dB=margin,
+        head_ideal_dB=head_ideal, head_gain_dB=head_gain,
         Pslw1_dBm=dbm(Pslw1), Pslw_dBm=Pslw_dBm, SNR_slw_dB=Pslw_dBm - Nhiv,
         Cpk_T=Cpk, ELpk_Vm=ELpk,
         Psw1_dBm=dbm(Ssw1 * Arx), Psw_dBm=Psw_dBm, SNR_sw_dB=Psw_dBm - Nhiv,

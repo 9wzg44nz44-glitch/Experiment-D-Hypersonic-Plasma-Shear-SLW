@@ -5,3 +5,9 @@ sim/wl_outputs.json
 sim/js_mod_outputs.json
 sim/py_mod_outputs.json
 sim/wl_mod_outputs.json
+sim/js_rx_outputs.json
+sim/py_rx_outputs.json
+sim/wl_rx_outputs.json
+sim/js_rxmod_outputs.json
+sim/py_rxmod_outputs.json
+sim/wl_rxmod_outputs.json

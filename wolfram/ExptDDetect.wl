@@ -1,11 +1,11 @@
 (* ::Package:: *)
 (* Experiment D - SLW/SW detectability engine, Mathematica twin of web/js/slw-detect.js and expt_d_model.py.
-   PhysicsVersion: expt-d-detect-v0.2 (v0.1 engine unchanged + v0.2 sheath-modulation section at the end)   (NOT yet executed: no Wolfram kernel on the build box; syntax checked by eye + wl_lint.mjs)
+   PhysicsVersion: expt-d-detect-v0.3 (v0.1 engine + v0.3 receiver chain (Friis cascade, instrument presets) + v0.2 sheath-modulation section at the end)   (NOT yet executed: no Wolfram kernel on the build box; syntax checked by eye + wl_lint.mjs)
    Labels: FACT = published/standard physics; HYP = Hively EED as printed (Hively & Loebl 2019 Eq. B5/37;
    US 9,306,527 Eq. 15; hub ledger box C = -mu0 (d_t rho + div J)); ASSUMPTION = modelling choice; SWEEP = unknown coupling.
    Symbols avoid the protected single letters C, D, E, I, K, N, O. *)
 
-exptDVersion = "expt-d-detect-v0.2";
+exptDVersion = "expt-d-detect-v0.3";
 
 (* FACT: CODATA 2018 *)
 cLight = 299792458.;
@@ -33,7 +33,10 @@ dbPerNp2 = 8.685889638065035;
 exptDDefaults = <|"h_km" -> 70., "mach" -> 25., "log10_ne" -> 18., "nu_scale" -> 1., "log10_S" -> 6.,
    "delta_m" -> 0.01, "B_uT" -> 50., "theta_deg" -> 90., "mech" -> "vxB", "Te_K" -> 6000., "f_close" -> 1.,
    "m_t" -> 0.1, "A_s" -> 1., "d_sh" -> 0.05, "f_rx" -> 30.*^6, "rbw" -> 30.*^3, "aperture" -> "hub",
-   "SE_dB" -> 55., "noise_env" -> "quiet_rural", "log10_eta" -> -3., "chi" -> 0., "log10_kappa" -> 0., "r_km" -> 100.|>;
+   "SE_dB" -> 55., "noise_env" -> "quiet_rural", "log10_eta" -> -3., "chi" -> 0., "log10_kappa" -> 0., "r_km" -> 100.,
+   (* v0.3 receiver chain; default = TinySA alone = v0.2. LNA values are PLACEHOLDERS *)
+   "rx_preset" -> "tinysa", "n_lna" -> 0, "cable_dB" -> 0., "lna1_G_dB" -> 21., "lna1_NF_dB" -> 3.,
+   "lna2_G_dB" -> 21., "lna2_NF_dB" -> 3., "lna3_G_dB" -> 21., "lna3_NF_dB" -> 3.|>;
 
 interpTab[xs_List, ys_List, x_, logy_] := Module[{n = Length[xs], i, t},
    i = Which[x <= xs[[1]], 1, x >= xs[[n]], n - 1, True, LengthWhile[Rest[xs], x > # &] + 1];
@@ -49,11 +52,39 @@ cSqrt[a_, b_] := Module[{r = Sqrt[a^2 + b^2], re, im},
 dBm[w_] := 10. Log10[w/1.*^-3];
 sumdBm[a_, b_] := 10. Log10[10.^(a/10.) + 10.^(b/10.)];
 
+(* ===== v0.3 receiver chain (mirror of rxChain in js/slw-detect.js and rx_chain in expt_d_model.py) =====
+   FACT tinysa.org TinySA4 spec: LDS -102 dBm @30 kHz (no LNA), -145 dBm @200 Hz (LNA on), both at 30 MHz.
+   FACT airspy.com HF+ Discovery: MDS -140.0 dBm @500 Hz, HF (15 MHz).
+   FACT Keysight N9040B data sheet 5992-0090EN p.9 DANL (1 Hz): preamp-on spec rows >= 100 kHz, preamp-off rows below.
+   FACT Friis, Proc. IRE 32, 419 (1944): F = F1 + (F2-1)/G1 + ...; lossy line at T0: F = L, G = 1/L (ASSUMPTION cable at 290 K).
+   ASSUMPTION: spot figures applied at all frequencies; UXA table clamped outside 3 Hz-3.6 GHz; worse value at a table edge. *)
+uxaTab = {{3., 10., -100.}, {10., 100., -125.}, {100., 1.*^3, -130.}, {1.*^3, 9.*^3, -137.}, {9.*^3, 100.*^3, -141.},
+   {100.*^3, 200.*^3, -152.}, {200.*^3, 500.*^3, -155.}, {500.*^3, 1.*^6, -159.}, {1.*^6, 10.*^6, -161.},
+   {10.*^6, 2.1*^9, -165.}, {2.1*^9, 3.6*^9, -163.}};
+rxPresets = <|"tinysa" -> {-102., 30.*^3}, "tinysa_lna" -> {-145., 200.}, "airspy_hfd" -> {-140., 500.},
+   "uxa_preamp" -> "table", "ideal" -> "ideal"|>;
+uxaDanl[f_] := Which[f <= uxaTab[[1, 1]], uxaTab[[1, 3]], f >= uxaTab[[-1, 2]], uxaTab[[-1, 3]],
+   True, Max[Cases[uxaTab, {lo_, hi_, d_} /; lo <= f <= hi :> d]]];
+backNoise[preset_, f_, rbw_] := With[{q = rxPresets[preset]},
+   Which[q === "ideal", dBm[kB tRef rbw], q === "table", uxaDanl[f] + 10. Log10[rbw], True, q[[1]] + 10. Log10[rbw/q[[2]]]]];
+(* log1p mirror of Math.log1p (avoids cancellation in the headroom outputs; series error < 1e-16 rel for |x| < 1e-4) *)
+log1p[x_] := If[Abs[x] < 1.*^-4, x - x^2/2 + x^3/3 - x^4/4, Log[1. + x]];
+rxChain[p_, f_, rbw_] := Module[{kt0b = dBm[kB tRef rbw], nb, st = {}, fb, ff, gg, ffront, dfb},
+   nb = backNoise[p["rx_preset"], f, rbw];
+   If[p["cable_dB"] > 0, AppendTo[st, {10.^(p["cable_dB"]/10.), 10.^(-p["cable_dB"]/10.)}]];
+   Do[AppendTo[st, {10.^(p["lna" <> ToString[k] <> "_NF_dB"]/10.), 10.^(p["lna" <> ToString[k] <> "_G_dB"]/10.)}], {k, 1, Round[p["n_lna"]]}];
+   fb = 10.^((nb - kt0b)/10.);
+   If[st === {}, <|"kT0B" -> kt0b, "Nb" -> nb, "Nrx" -> nb, "Fsys" -> fb, "Ffront" -> fb, "dFback" -> 0., "stages" -> 0|>,
+    ff = st[[1, 1]]; gg = st[[1, 2]];
+    Do[ff += (st[[i, 1]] - 1)/gg; gg *= st[[i, 2]], {i, 2, Length[st]}];
+    ffront = ff; dfb = (fb - 1)/gg; ff += dfb;
+    <|"kT0B" -> kt0b, "Nb" -> nb, "Nrx" -> kt0b + 10. Log10[ff], "Fsys" -> ff, "Ffront" -> ffront, "dFback" -> dfb, "stages" -> Length[st]|>]];
+
 exptDModel[pin_Association] := Module[
    {p = Join[exptDDefaults, pin], a, uu, ne, wp, fp, nu, sigma, ss, du, bb, de, jj, nc, isrc, fc, g, fspec,
     iband, ipk, w, den, er, ei, nn, k0, alpha, ashdB, tint, tintdB, lam, r, arx, atem, nts, kt0b, env, fMHz,
     fa, nextConv, nconv, nhiv, eta, kappa, sslw1, slwLossdB, pslw1, pslw, cpk, elpk, ssw1, psw, icellpk,
-    ptemEmit, ptemdBm, tb, pthdBm, pslwdBm, pswdBm, nhivW},
+    ptemEmit, ptemdBm, tb, pthdBm, pslwdBm, pswdBm, nhivW, ch, nrx, nleak, ll, margin, headIdeal, headGain},
    a = soundSpeed[p["h_km"]];
    uu = p["mach"] a;
    ne = 10.^p["log10_ne"];
@@ -88,16 +119,21 @@ exptDModel[pin_Association] := Module[
    r = p["r_km"] 1.*^3;
    arx = If[p["aperture"] === "recip", lam lam/(4 N[Pi]), hubAeff hubEta];
    atem = 1.5 lam lam/(4 N[Pi]);
-   nts = -102. + 10. Log10[p["rbw"]/30.*^3];
-   kt0b = dBm[kB tRef p["rbw"]];
+   ch = rxChain[p, p["f_rx"], p["rbw"]];                        (* v0.3 receiver chain; default = TinySA alone *)
+   nts = ch["Nb"]; nrx = ch["Nrx"]; kt0b = ch["kT0B"];
    env = noiseEnv[p["noise_env"]];
    fMHz = p["f_rx"]/1.*^6;
    If[env === None,
-    fa = Null; nconv = nts; nhiv = nts,
+    fa = Null; nconv = nrx; nhiv = nrx; nleak = -Infinity; ll = 0.; margin = Null,
     fa = env[[1]] - env[[2]] Log10[fMHz];
     nextConv = kt0b + fa;
-    nconv = sumdBm[nts, nextConv];
-    nhiv = sumdBm[nts, nextConv - p["SE_dB"]]];
+    nleak = nextConv - p["SE_dB"];                                (* outside TEM noise leaking through the Faraday cage *)
+    nconv = sumdBm[nrx, nextConv];
+    nhiv = sumdBm[nrx, nleak];
+    ll = 10.^((fa - p["SE_dB"])/10.);
+    margin = 10. Log10[ch["Fsys"]] - (fa - p["SE_dB"])];
+   headIdeal = 10. log1p[(ch["Fsys"] - 1)/(1 + ll)]/Log[10.];
+   headGain = 10. log1p[ch["dFback"]/(ch["Ffront"] + ll)]/Log[10.];
    eta = 10.^p["log10_eta"]; kappa = 10.^p["log10_kappa"];
    (* HYP: Hively & Loebl 2019 Eq. B5 / US 9,306,527 Eq. 15 *)
    sslw1 = z0 ipk ipk/(4 N[Pi] r)^2;
@@ -120,7 +156,10 @@ exptDModel[pin_Association] := Module[
     "du_ms" -> du, "De_m2s" -> de, "J_Am2" -> jj, "Nc" -> nc, "Isrc_A" -> isrc, "fc_Hz" -> fc, "Fspec" -> fspec,
     "Iband_A" -> iband, "eps_r" -> er, "eps_i" -> ei, "n_re" -> nn[[1]], "n_im" -> nn[[2]], "alpha_Npm" -> alpha,
     "Ash_dB" -> ashdB, "Tint_dB" -> tintdB, "Arx_m2" -> arx, "Atem_m2" -> atem, "Nts_dBm" -> nts, "Fa_dB" -> fa,
-    "Nconv_dBm" -> nconv, "Nhiv_dBm" -> nhiv, "Pslw1_dBm" -> dBm[pslw1], "Pslw_dBm" -> pslwdBm,
+    "Nconv_dBm" -> nconv, "Nhiv_dBm" -> nhiv,
+    "Nrx_dBm" -> nrx, "NFsys_dB" -> 10. Log10[ch["Fsys"]], "kT0B_dBm" -> kt0b, "Nleak_dBm" -> If[nleak === -Infinity, Null, nleak],
+    "rx_dom" -> If[margin === Null || margin >= 0, "receiver", "leak"], "rx_margin_dB" -> margin,
+    "head_ideal_dB" -> headIdeal, "head_gain_dB" -> headGain, "Pslw1_dBm" -> dBm[pslw1], "Pslw_dBm" -> pslwdBm,
     "SNR_slw_dB" -> pslwdBm - nhiv, "Cpk_T" -> cpk, "ELpk_Vm" -> elpk, "Psw1_dBm" -> dBm[ssw1 arx],
     "Psw_dBm" -> pswdBm, "SNR_sw_dB" -> pswdBm - nhiv, "Ptem_dBm" -> ptemdBm, "SNR_tem_dB" -> ptemdBm - nconv,
     "PtemHiv_dBm" -> ptemdBm - p["SE_dB"], "Tb_K" -> tb, "Pth_dBm" -> pthdBm, "SNR_th_dB" -> pthdBm - nconv,
@@ -132,10 +171,12 @@ exptDManipulate[] := Manipulate[
    Module[{apEff = If[ap === "auto", If[frx == 1.*^6, "recip", "hub"], ap], q, pars, rr = 10.^Range[0., 3., 0.05]},
     pars = <|"h_km" -> h, "mach" -> mach, "log10_ne" -> lne, "log10_S" -> lS, "delta_m" -> dl,
         "B_uT" -> bt, "mech" -> mech, "f_close" -> fcl, "m_t" -> mt, "A_s" -> as, "f_rx" -> frx, "aperture" -> apEff,
-        "SE_dB" -> se, "noise_env" -> env, "log10_eta" -> le, "chi" -> chi, "log10_kappa" -> lk, "r_km" -> rk|>;
+        "SE_dB" -> se, "noise_env" -> env, "log10_eta" -> le, "chi" -> chi, "log10_kappa" -> lk, "r_km" -> rk,
+        "rx_preset" -> rxp, "n_lna" -> nl, "cable_dB" -> cab, "lna1_G_dB" -> g1, "lna1_NF_dB" -> nf1,
+        "lna2_G_dB" -> g1, "lna2_NF_dB" -> nf1, "lna3_G_dB" -> g1, "lna3_NF_dB" -> nf1|>;
     q = exptDModel[pars];
     Column[{
-      Style["Experiment D: could a receiver hear it?  physics " <> exptDVersion <> " \[CenterDot] UI v0.2.0 (HYP estimate, not flight data)", Bold],
+      Style["Experiment D: could a receiver hear it?  physics " <> exptDVersion <> " \[CenterDot] UI v0.3.0 (HYP estimate, not flight data)", Bold],
       Style[If[q["eta_th0"] <= 1.,
         "Detectable? Only if \[Eta] > " <> ToString[NumberForm[q["eta_th0"], 3]],
         "Detectable? No, not for any \[Eta] \[LessEqual] 1 (would need \[Eta] = " <> ToString[NumberForm[q["eta_th0"], 3]] <> ")"] <>
@@ -143,7 +184,8 @@ exptDManipulate[] := Manipulate[
       Style["SNR = signal-to-noise ratio: how far the signal sits above the receiver's own noise (0 dB = equal).", Italic, Gray],
       OpenerView[{"Detailed readouts",
       Grid[{{"plasma frequency f_p (GHz)", q["fp_Hz"]/1.*^9}, {"collision rate \[Nu] (1/s)", q["nu_s"]}, {"current density J, upper limit (A/m^2)", q["J_Am2"]},
-        {"flickering current rms (A)", q["Isrc_A"]}, {"plasma loss, ordinary radio (dB)", q["Ash_dB"]}, {"noise floor, shielded Hively receiver (dBm)", q["Nhiv_dBm"]},
+        {"flickering current rms (A)", q["Isrc_A"]}, {"plasma loss, ordinary radio (dB)", q["Ash_dB"]}, {"noise floor, receive sphere inside Faraday cage (dBm)", q["Nhiv_dBm"]}, {"receiver chain NF_sys (dB)", q["NFsys_dB"]},
+        {"floor set by", If[q["rx_dom"] === "leak", "TEM noise leaking through the Faraday cage", "your receiver"]}, {"smallest \[Eta]\[Sqrt]\[Kappa]_C, SW proxy", q["etakap_th0_sw"]},
         {"SLW received power, HYP (dBm)", q["Pslw_dBm"]}, {"SLW SNR, HYP (dB)", q["SNR_slw_dB"]}, {"smallest \[Eta] for SNR 0 dB", q["eta_th0"]},
         {"scalar-wave proxy power, HYP (dBm)", q["Psw_dBm"]}, {"ordinary radio power, FACT form (dBm)", q["Ptem_dBm"]}, {"plasma glow power, FACT (dBm)", q["Pth_dBm"]}},
        Frame -> All, Alignment -> Left]}],
@@ -165,10 +207,15 @@ exptDManipulate[] := Manipulate[
    {{fcl, 1., "current closure f_close (1 = upper limit)"}, 0.001, 1.},
    {{mt, 0.1, "turbulence level \[Delta]n/n"}, 0.01, 0.5}, {{as, 1., "turbulent sheet area (m^2)"}, 0.1, 10.},
    {{ap, "auto", "antenna collecting-area model"}, {"auto" -> "auto (from band)", "hub" -> "small Hively antenna (hub)", "recip" -> "full-size resonant \[Lambda]^2/4\[Pi]"}},
-   {{se, 55., "shielding SE: Faraday + sleeve-balun cut of ordinary radio (dB)"}, 0., 80.},
+   {{se, 55., "Faraday cage shielding around the receive sphere, SE (dB); SLW assumed to pass the cage wall (HYP)"}, 0., 80.},
    {{env, "quiet_rural", "local radio noise (ITU-R P.372)"}, {"quiet_rural", "rural", "residential", "city", "none"}},
    {{chi, 0., "\[Chi]: SLW loss in plasma relative to radio (SWEEP)"}, 0., 1.},
    {{lk, 0., "log10 \[Kappa]_C: receiver response to a pure scalar wave (SWEEP)"}, -12., 0.},
+   Delimiter, Style["Receiver chain (v0.3)", Bold],
+   {{rxp, "tinysa", "instrument (back end)"}, {"tinysa" -> "TinySA Ultra, no LNA", "tinysa_lna" -> "TinySA Ultra, LNA on",
+      "airspy_hfd" -> "Airspy HF+ Discovery", "uxa_preamp" -> "Keysight UXA, preamp on", "ideal" -> "ideal, NF 0 dB"}},
+   {{nl, 0, "number of LNAs"}, {0, 1, 2, 3}}, {{cab, 0., "cable loss before LNA 1 (dB)"}, 0., 10.},
+   {{g1, 21., "LNA gain G per stage (dB) (PLACEHOLDER 21)"}, 0., 40.}, {{nf1, 3., "LNA noise figure NF per stage (dB) (PLACEHOLDER 3)"}, 0.2, 10.},
    SaveDefinitions -> True];
 
 (* ===================== v0.2 "Sheath modulation" (mirror of js/slw-modulation.js and sim/expt_d_mod.py) =====================
@@ -198,10 +245,10 @@ sheathLoss[f_, p_] := Module[{ne = 10.^p["log10_ne"], wp, nu, w, den, er, ei, nn
    nn = cSqrt[er, ei];
    {dbPerNp2 (w/cLight) nn[[2]] p["d_sh"], 4 nn[[1]]/((nn[[1]] + 1)^2 + nn[[2]]^2), nn[[1]]}];
 
-noiseDensity[f_, p_] := Module[{nts = -102. + 10. Log10[p["rbw"]/30.*^3], env = noiseEnv[p["noise_env"]], kt0b, fa, nn},
-   If[env === None, nn = nts,
+noiseDensity[f_, p_] := Module[{nrx = rxChain[p, f, p["rbw"]]["Nrx"], env = noiseEnv[p["noise_env"]], kt0b, fa, nn},  (* v0.3 chain *)
+   If[env === None, nn = nrx,
     kt0b = dBm[kB tRef p["rbw"]]; fa = env[[1]] - env[[2]] Log10[f/1.*^6];
-    nn = sumdBm[nts, kt0b + fa - p["SE_dB"]]];
+    nn = sumdBm[nrx, kt0b + fa - p["SE_dB"]]];
    10.^(nn/10.) 1.*^-3/p["rbw"]];
 
 apArea[kind_, f_] := Which[kind === "hub", hubAeff hubEta, kind === "lf75", aLF75, True, (cLight/f)^2/(4 N[Pi])];
