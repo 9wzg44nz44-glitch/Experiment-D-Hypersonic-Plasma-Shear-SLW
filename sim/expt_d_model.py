@@ -6,7 +6,7 @@ US 9,306,527, hub ledger); ASSUMPTION = modelling choice made here; SWEEP = unkn
 """
 import math
 
-VERSION = "expt-d-detect-v0.1"
+VERSION = "expt-d-detect-v0.2"
 # FACT: CODATA 2018
 c = 299792458.0
 mu0 = 1.25663706212e-6
