@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="format-detection" content="telephone=no">
 <meta name="description" content="Experiment D — first quantitative SLW/SW detectability estimate for a hypersonic plasma sheath: FACT sheath physics (RAM-C II) + HYP Hively EED, parametric sweeps over unknown couplings. Not flight data.">
-<title>Experiment D · SLW / SW detectability estimate (expt-d-detect-v0.1)</title>
+<title>Experiment D · Could a receiver hear it? (physics expt-d-detect-v0.1 · UI v0.1.1)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
+
 :root{
   --bg:#0b1220; --panel:#121a2c; --ink:#e8eef8; --muted:#9aabbf;
   --line:#2a3a55; --accent:#3db8a0; --warn:#e0a060; --hot:#e07060; --shear:#7ec8ff;
@@ -73,243 +74,412 @@ td.ok{color:#7fe0a8} td.no{color:#e07060}
 .plot.tall{height:320px}
 figure{margin:14px 0} figure img{width:100%;border-radius:10px;border:1px solid var(--line);background:#fff}
 figcaption{color:var(--muted);font-size:.86rem}
+
+/* ---- novice layout (UI v0.1.1) ---- */
+.hero-verdict{border:2px solid var(--accent);border-radius:16px;padding:16px 18px;margin:16px 0;background:rgba(61,184,160,.08)}
+.hero-verdict.no{border-color:var(--hot);background:rgba(224,112,96,.08)}
+.hero-verdict .big{font-family:var(--font-d);font-size:clamp(1.35rem,4.2vw,1.9rem);font-weight:700;line-height:1.25}
+.hero-verdict .big .yes{color:#7fe0a8} .hero-verdict .big .nope{color:#ff9a8a}
+.hero-verdict .sub{color:var(--ink);margin-top:6px;font-size:1rem}
+.hero-verdict .fine{color:var(--muted);font-size:.86rem;margin-top:6px}
+.simple{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:12px 0}
+.simple .ctl{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.simple .ctl .name{font-weight:700;font-size:1rem}
+.simple .ctl .val{display:block;font-family:var(--font-m);color:var(--accent);font-weight:600;font-size:1.05rem}
+.simple select{font-family:var(--font-b)}
+.simple .ctl .def{color:var(--muted);font-size:.84rem;margin:4px 0 8px;line-height:1.4}
+input[type=range]{height:32px;accent-color:#3db8a0}
+select{min-height:40px;font-size:.95rem}
+.tabs{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 8px}
+.tabs button{font:600 .92rem var(--font-b);color:var(--ink);background:#121a2c;border:1px solid var(--line);border-radius:999px;padding:10px 14px;cursor:pointer;min-height:44px}
+.tabs button[aria-expanded=true]{background:var(--accent);color:#061018;border-color:var(--accent)}
+.tabs button:focus-visible{outline:2px solid var(--shear);outline-offset:2px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:8px 0 16px}
+.panel[hidden]{display:none}
+.panel h3{margin-top:.9em} .panel h3:first-child{margin-top:0}
+.tinyline{color:var(--muted);font-size:.78rem;margin:6px 0 0}
+dl.gloss{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;font-size:.92rem;margin:8px 0}
+dl.gloss dt{font-family:var(--font-m);color:var(--shear);font-weight:600}
+dl.gloss dd{margin:0;color:var(--ink)}
+@media (max-width:600px){dl.gloss{grid-template-columns:1fr} dl.gloss dt{margin-top:6px}}
+ol.chain{padding-left:1.2rem} ol.chain>li{margin:.5em 0}
+.plotbox{width:100%;margin:8px 0}
+.plotbox canvas{width:100%;height:260px;display:block;background:#0a101c;border-radius:10px;border:1px solid var(--line)}
+.legend{font-size:.84rem;color:var(--muted)}
+.legend i{display:inline-block;width:18px;height:3px;vertical-align:middle;margin:0 4px 0 10px}
+.btn2{font:600 .88rem var(--font-b);background:transparent;color:var(--shear);border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+@media (max-width:600px){ .simple{grid-template-columns:1fr} .wrap{padding:18px 14px 60px} body{font-size:16px} .meters{grid-template-columns:repeat(2,1fr)} .eq{font-size:.76rem} header.top .inner{gap:8px} .ver{display:none} }
+ol.chain{font-family:var(--font-b);font-size:.95rem;white-space:normal;background:none;border:0;overflow:visible}
 </style>
 </head>
 <body>
 <header class="top"><div class="inner">
   <div class="mark">D</div>
-  <div class="brand">Experiment D <small>Independent · detectability estimate</small></div>
+  <div class="brand">Experiment D <small>Could a receiver hear it?</small></div>
   <span class="pill">Not flight data</span>
-  <span class="ver" id="verTop">expt-d-detect-v0.1</span>
+  <span class="ver" id="verTop"></span>
   <a href="./" style="margin-left:auto;font-size:.9rem">← Experiment D home</a>
 </div></header>
 
 <main class="wrap">
-<p class="kicker">Hypersonic plasma sheath · Hively EED · TinySA Ultra · first honest numbers</p>
-<h1>Could a Dan-class receiver hear an SLW / SW from a hypersonic sheath?</h1>
-<p class="lede">A first quantitative estimate. Sheath parameters come from published reentry data and textbook plasma physics (<span class="tag">FACT</span>). The SLW/SW launch and range law are Hively's EED, used exactly as printed (<span class="tag hyp">HYP</span>). Every coupling nobody has measured is a slider swept over decades (<span class="tag sweep">SWEEP</span>), never a single value. Modelling choices made here are marked <span class="tag asm">ASSUMPTION</span>.</p>
+<h1>Could a hobby receiver pick up a “scalar wave” from a hypersonic vehicle?</h1>
+<p class="lede">A vehicle flying at 5 to 25 times the speed of sound wraps itself in a thin layer of hot, electrically charged gas: a <strong>plasma sheath</strong>. Lee Hively's <strong>extended electrodynamics (EED)</strong>, which is not accepted physics, predicts that currents swirling in that plasma could launch a <strong>scalar-longitudinal wave (SLW)</strong>. This page estimates whether Dan's receiver (a TinySA Ultra spectrum analyser on a Hively-style antenna) could hear one.</p>
 
-<div class="banner"><strong>Cloud twin pending sync (expt-d-detect-v0.1).</strong> This page is live on GitHub ahead of its Wolfram Cloud twin. The Mathematica file <code>ExptDDetect.wl</code> is written and hand-checked but has not been run yet (no Wolfram kernel on the build machine). The JS engine matches the independent Python reference on a fixed 2,304-point grid: <strong>PASS 105,985 / FAIL 0</strong> at rel tol 1e-9. A JS-vs-Wolfram compare is still owed. Physics version <code id="verBanner">expt-d-detect-v0.1</code>.</div>
-<div class="banner warn"><strong>Bottom line (baseline, 100 km, TinySA Ultra with no LNA, 30 kHz RBW).</strong> On Dan's actual bands (433.92 / 1296 MHz Hively-style antennas) the HYP SLW is <strong>not detectable for any η ≤ 1</strong> under the Ohm's-law (v×B) sheath-current estimate, even at n<sub>e</sub> = 10<sup>20</sup> m⁻³ with full current closure (η<sub>th</sub> ≥ 17). Only a large resonant low-frequency SLW antenna (≈1 MHz, λ²/4π aperture) gets η<sub>th</sub> ≈ 0.025 at n<sub>e</sub> = 10<sup>18</sup>. That is <em>detectable only if η &gt; 0.025</em>, and the FACT-side inputs alone make that threshold uncertain by roughly ±2–3 decades. η is the fraction of the in-band sheath current that is SLW-active. η = 1 means the sheath is as SLW-efficient as Hively's own balun antenna. The classical passive signatures (the TEM from the same currents, and sheath thermal emission) sit at least ≈110 dB below the floor at 100 km for the v×B estimate (≥ 70 dB even for the extreme diffusion bound).</div>
+<div id="verdict" class="hero-verdict" aria-live="polite">
+  <div class="big" id="vBig">—</div>
+  <div class="sub" id="vSub"></div>
+  <div class="fine" id="vFine"></div>
+</div>
 
-<h2 id="sim">Simulator</h2>
-<p style="color:var(--muted);font-size:.92rem">The defaults match RAM-C II near 70 km (7.4 km/s, ≈Mach 25). The shear-layer current is the Ohm's-law <b>upper bound</b> (full closure). Real polarization shorting only lowers it, so each η<sub>th</sub> shown is a lower bound on the η actually needed.</p>
-<fieldset><legend>FACT · flow &amp; sheath</legend>
-<div class="controls">
-  <label>Altitude <output id="oh"></output><input id="h_km" type="range" min="30" max="90" step="1" value="70"></label>
-  <label>Mach <output id="omach"></output><input id="mach" type="range" min="5" max="26" step="0.5" value="25"></label>
-  <label>n<sub>e</sub> (log₁₀ m⁻³) <output id="one"></output><input id="log10_ne" type="range" min="14" max="20" step="0.1" value="18"></label>
-  <label>Collision freq. ν × <output id="onu"></output><input id="nu_scale_l" type="range" min="-1" max="1" step="0.05" value="0"></label>
-  <label class="shear-hi">Shear rate S = du/dy (log₁₀ s⁻¹) <output id="oS"></output><input id="log10_S" type="range" min="4" max="8" step="0.1" value="6"></label>
-  <label>Shear-layer thickness δ (mm) <output id="odl"></output><input id="delta_l" type="range" min="0" max="2" step="0.05" value="1"></label>
-  <label>Geomagnetic B (µT) <output id="oB"></output><input id="B_uT" type="range" min="25" max="65" step="1" value="50"></label>
-  <label>Angle flow-shear ⟂ B (°) <output id="oth"></output><input id="theta_deg" type="range" min="0" max="90" step="1" value="90"></label>
-  <label>Current mechanism <select id="mech"><option value="vxB" selected>Ohm's law σ·Δu·B (motional, default)</option><option value="diff">unbalanced e⁻ diffusion e·D<sub>e</sub>·n<sub>e</sub>/δ (extreme upper bound)</option></select></label>
-  <label>T<sub>e</sub> (K) <output id="oTe"></output><input id="Te_K" type="range" min="2000" max="20000" step="500" value="6000"></label>
-  <label>Current closure factor (log₁₀) <output id="ofc"></output><input id="f_close_l" type="range" min="-3" max="0" step="0.1" value="0"></label>
-  <label>Fluctuation level δn/n <output id="omt"></output><input id="m_t" type="range" min="0.01" max="0.5" step="0.01" value="0.1"></label>
-  <label>Sheet area A<sub>s</sub> (m²) <output id="oAs"></output><input id="A_s" type="range" min="0.1" max="10" step="0.1" value="1"></label>
-  <label>Sheath thickness over source d (cm) <output id="odsh"></output><input id="d_sh" type="range" min="0.5" max="20" step="0.5" value="5"></label>
-</div></fieldset>
-<fieldset><legend>FACT · receiver &amp; noise</legend>
-<div class="controls">
-  <label>Receiver frequency <select id="f_rx"><option value="1e6">1 MHz (large LF antenna)</option><option value="30e6" selected>30 MHz (TinySA spec point)</option><option value="433.92e6">433.92 MHz (Dan's balun / sphere band)</option><option value="1296e6">1296 MHz (Dan's sleeve-balun band)</option></select></label>
-  <label>SLW receive aperture <select id="aperture"><option value="hub" selected>hub SleeveBalunSNR convention π(5 cm)²×0.5 (HYP carry-over)</option><option value="recip">reciprocal isotropic λ²/4π (HYP, needs a resonant antenna)</option></select></label>
-  <label>RBW (kHz) <output id="orbw"></output><input id="rbw_k" type="range" min="0.2" max="600" step="0.1" value="30"></label>
-  <label>TEM rejection of the RX (Faraday + sleeve balun) SE (dB) <output id="oSE"></output><input id="SE_dB" type="range" min="0" max="80" step="1" value="55"></label>
-  <label>External noise (ITU-R P.372) <select id="noise_env"><option value="quiet_rural" selected>quiet rural</option><option value="rural">rural</option><option value="residential">residential</option><option value="city">city</option><option value="none">none (TinySA floor only)</option></select></label>
-  <label>Range r (km) <output id="or"></output><input id="r_l" type="range" min="0" max="3" step="0.01" value="2"></label>
-</div></fieldset>
-<fieldset><legend>SWEEP · unknown EED couplings (no single value exists)</legend>
-<div class="controls">
-  <label class="shear-hi">η: SLW-active (non-conserved / irrotational) fraction of the in-band current, log₁₀ <output id="oeta"></output><input id="log10_eta" type="range" min="-12" max="0" step="0.1" value="-3"></label>
-  <label>χ: SLW sheath Joule loss, as a fraction of the Drude dB (0 = HL2019 App. A, 1 = hub σE² reading) <output id="ochi"></output><input id="chi" type="range" min="0" max="1" step="0.05" value="0"></label>
-  <label>κ<sub>C</sub>: receiver coupling to pure C (SW proxy), log₁₀ <output id="okap"></output><input id="log10_kappa" type="range" min="-12" max="0" step="0.1" value="0"></label>
-</div></fieldset>
+<div class="simple">
+  <div class="ctl">
+    <span class="name">Distance to the vehicle</span><output class="val" id="or"></output>
+    <div class="def">How far the receiver is from the vehicle, in kilometres (km). The signal weakens with the square of the distance.</div>
+    <input id="r_l" type="range" min="0" max="3" step="0.01" value="2" aria-label="Distance in km (log scale)">
+  </div>
+  <div class="ctl">
+    <span class="name">Plasma density n<sub>e</sub></span><output class="val" id="one"></output>
+    <div class="def"><b>n<sub>e</sub></b> is the number of free electrons per cubic metre in the plasma sheath. RAM-C II flights measured about 10¹⁴ to 10¹⁹. Computer models give about 10²⁰ at the nose.</div>
+    <input id="log10_ne" type="range" min="14" max="20" step="0.1" value="18" aria-label="log10 electron density per cubic metre">
+  </div>
+  <div class="ctl">
+    <span class="name">Receiver band</span>
+    <div class="def">Which antenna and frequency the TinySA listens on. The preset also sets the antenna's collecting area.</div>
+    <select id="band">
+      <option value="433">433.92 MHz: Dan's ball / sphere antenna</option>
+      <option value="1296">1296 MHz: Dan's sleeve-balun antenna</option>
+      <option value="30" selected>30 MHz: reference point (TinySA spec)</option>
+      <option value="1">1 MHz: hypothetical ~75 m resonant antenna</option>
+    </select>
+  </div>
+  <div class="ctl">
+    <span class="name">Unknown coupling η (eta)</span><output class="val" id="oeta"></output>
+    <div class="def"><b>η</b> is the unknown fraction of the plasma current that would launch an SLW <em>if</em> Hively's model is right. 1 means the plasma is as efficient as Hively's own antenna. Standard physics says 0. Nobody has measured it, so try any value.</div>
+    <input id="log10_eta" type="range" min="-12" max="0" step="0.1" value="-3" aria-label="log10 eta">
+  </div>
+</div>
+<p class="tinyline"><span id="verLine"></span> · Cloud twin pending sync · <a href="#" data-open="p-version">details</a></p>
 
-<div id="verdict" class="verdict">—</div>
-<div class="meters" id="meters"></div>
-<canvas class="plot tall" id="pRange" width="1000" height="320" aria-label="Received power vs range"></canvas>
-<p style="color:var(--muted);font-size:.86rem">Received power vs range, all in the chosen RBW. <span style="color:#3db8a0">Teal</span> = HYP SLW at the chosen η; <span style="color:#3db8a0">thin teal</span> = HYP SLW at η = 1; <span style="color:#b39ddb">violet</span> = HYP SW proxy; <span style="color:#e0a060">orange</span> = FACT-form classical TEM from the same currents (conventional dipole); <span style="color:#e07060">red</span> = FACT sheath thermal emission; white = Hively-RX floor; grey dashed = conventional-RX floor. EED (as printed) and TEM both fall as 1/r² in power, so there is no range advantage.</p>
-<canvas class="plot tall" id="pEta" width="1000" height="320" aria-label="eta threshold vs range"></canvas>
-<p style="color:var(--muted);font-size:.86rem">η needed for SNR = 0 dB vs range for the four receiver bands, with the other sliders as set. Below the white η = 1 line, detection is possible for some physically meaningful η.</p>
+<nav class="tabs" aria-label="More detail">
+  <button type="button" aria-expanded="false" aria-controls="p-how">How it works</button>
+  <button type="button" aria-expanded="false" aria-controls="p-charts">Charts &amp; table</button>
+  <button type="button" aria-expanded="false" aria-controls="p-full">Full controls</button>
+  <button type="button" aria-expanded="false" aria-controls="p-facthyp">FACT vs HYP</button>
+  <button type="button" aria-expanded="false" aria-controls="p-assume">Assumptions &amp; unknown couplings</button>
+  <button type="button" aria-expanded="false" aria-controls="p-sources">Sources</button>
+  <button type="button" aria-expanded="false" aria-controls="p-version">Cross-checks / version</button>
+</nav>
 
-<h3>Live results table (current sliders; η<sub>th</sub> for SNR = 0 dB)</h3>
+<!-- ============ HOW IT WORKS ============ -->
+<section class="panel" id="p-how" hidden>
+<h3>The claim chain, step by step</h3>
+<ol class="chain">
+<li><b>Hot shock layer → plasma.</b> At hypersonic speed the air in front of the vehicle is compressed and heated until electrons are knocked off the molecules. The vehicle ends up wrapped in a plasma sheath a few centimetres thick. <span class="tag">FACT</span> (RAM-C II flights, 1970).</li>
+<li><b>Shear → currents.</b> The gas right at the skin moves with the vehicle, while gas a centimetre away barely moves. This steep velocity change is called <b>shear</b>, measured by the <b>shear rate S</b> (how many metres per second the speed changes per metre of height, in units of 1/s). Charged gas moving through the Earth's magnetic field <b>B</b> feels a push that drives an electric <b>current density J</b> (amperes flowing per square metre). Turbulence makes that current flicker. <span class="tag">FACT</span> (Ohm's law; we use its upper limit).</li>
+<li><b>Currents → SLW?</b> In Hively's EED, part of such a current (the fraction <b>η</b>) would create a new field <b>C</b>, a “scalar” field that ordinary electromagnetism does not have. A travelling ripple in C, together with an electric field pointing along the direction of travel, is the SLW. <span class="tag hyp">HYP</span></li>
+<li><b>Travel to the receiver.</b> Hively's own papers say the SLW spreads out like ordinary radio: its power falls with the square of the distance. The claimed difference is that it passes through the plasma sheath and metal shielding that block ordinary radio. <span class="tag hyp">HYP</span></li>
+<li><b>Receive.</b> A Hively-style antenna inside a Faraday shield (a metal enclosure that blocks ordinary radio) feeds the TinySA. The TinySA's own noise sets the floor: about −102 dBm in a 30 kHz bandwidth. <b>dBm</b> means decibels relative to one milliwatt; −102 dBm is about 6×10⁻¹⁴ W. <span class="tag">FACT</span></li>
+</ol>
+<h3>Why ordinary radio can't do this</h3>
+<p>The plasma sheath reflects and absorbs ordinary radio below its <b>plasma frequency f<sub>p</sub></b> (≈ 9 GHz at n<sub>e</sub> = 10¹⁸). This is the well-known reentry <b>radio blackout</b>. Even without the blackout, the ordinary radio noise from the same currents and the glow (thermal emission) of the hot plasma are far below the receiver's floor at these distances. <span class="tag">FACT</span></p>
+<h3>What the verdict means</h3>
+<p>The page works out the smallest <b>η</b> that would lift the signal to the noise floor (SNR = 0 dB). If that required η is larger than 1, no plasma could do it, even under Hively's model. If it is smaller than 1, detection depends on a number nobody knows, and a null result would set a limit on η.</p>
+</section>
+
+<!-- ============ CHARTS ============ -->
+<section class="panel" id="p-charts" hidden>
+<h3>Received power vs distance</h3>
+<div class="plotbox"><canvas id="pRange" aria-label="Received power vs distance"></canvas></div>
+<p class="legend"><i style="background:#3db8a0;height:4px"></i>SLW at your η (HYP) <i style="background:#3db8a0;height:1px"></i>SLW if η = 1 (HYP) <i style="background:#b39ddb"></i>scalar-wave (SW) proxy (HYP) <i style="background:#e0a060"></i>ordinary radio from the same currents (FACT) <i style="background:#e07060"></i>plasma glow (FACT) <i style="background:#fff"></i>noise floor, shielded Hively receiver <i style="background:#9aabbf"></i>noise floor, ordinary receiver</p>
+<p class="legend">Vertical dotted line = your distance. Power is in dBm within the receiver bandwidth.</p>
+<h3>Smallest η needed vs distance, for each band</h3>
+<div class="plotbox"><canvas id="pEta" aria-label="eta needed vs distance"></canvas></div>
+<p class="legend">Below the white η = 1 line, some physically possible η could be detected. Above it, nothing can be.</p>
+<h3>Table: smallest η for SNR = 0 dB (your other settings)</h3>
 <div style="overflow-x:auto"><table class="res" id="resTable"></table></div>
+<p class="legend">Green = some η ≤ 1 works; red = impossible. “Ordinary radio SNR” and “plasma glow SNR” are the classical signals on an ordinary antenna.</p>
+<h3>Python reference figures</h3>
+<figure><img src="plots/fig1_power_vs_range.png" alt="Fig 1" loading="lazy"><figcaption>Fig 1: received power vs distance at baseline.</figcaption></figure>
+<figure><img src="plots/fig2_eta_threshold_vs_range.png" alt="Fig 2" loading="lazy"><figcaption>Fig 2: η needed vs distance for three plasma densities and four bands.</figcaption></figure>
+<figure><img src="plots/fig3_eta_threshold_ne_shear.png" alt="Fig 3" loading="lazy"><figcaption>Fig 3: η needed over plasma density × shear rate at 100 km.</figcaption></figure>
+<figure><img src="plots/fig4_sheath_blackout.png" alt="Fig 4" loading="lazy"><figcaption>Fig 4: classical radio blackout of the sheath vs frequency (FACT).</figcaption></figure>
+<figure><img src="plots/fig6_sensitivity_tornado.png" alt="Fig 6" loading="lazy"><figcaption>Fig 6: how much each measured-physics input moves the answer.</figcaption></figure>
+</section>
 
-<h2 id="eqs">Model — every equation labelled</h2>
-<p class="eq"><span class="tag">FACT</span> plasma frequency  f_p = ω_p/2π,  ω_p = √(n_e e²/ε₀ m_e)   ≈ 8.98 √n_e Hz  (NRL Plasma Formulary)
-<span class="tag">FACT</span> collision freq. ν(h) = 2.51×10⁹ s⁻¹ · ρ_air(h)/ρ_air(45.72 km) · ν×   (anchor: Grantham, NASA TN D-6062, p.12; ρ from US Std Atm 1976)
-   <span class="tag asm">ASSUMPTION</span> ν ∝ neutral density (kinetic ν = n_n σ v_th at fixed T); the ν× slider covers ×0.1…×10
-<span class="tag">FACT</span> Drude conductivity  σ = n_e e²/(m_e ν);  diffusivity  D_e = k_B T_e/(m_e ν)
-<span class="tag">FACT</span> Ohm's law in the shear layer  J = f_close · σ · Δu · B · sin θ,  Δu = min(S·δ, U)   <span class="tag asm">ASSUMPTION</span> f_close = 1 is the upper bound
-   alt.  J = f_close · e D_e n_e / δ  (unbalanced electron diffusion; the real net current is ambipolar-suppressed, so this is an extreme bound)
-<span class="tag asm">ASSUMPTION</span> random-phase cells ℓ_c = δ:  N_c = A_s/δ²,  I_src,rms = (δn/n) · J · δ · √A_s
-<span class="tag asm">ASSUMPTION</span> spectrum flat to f_c = S/2π, then f^(−5/3) (Kolmogorov + Taylor, no dissipation cutoff, so optimistic at GHz)
-   fraction in RBW  F = RBW · g(f_rx) / (2.5 f_c);   I_pk = √2 · I_src,rms · √F
-<span class="tag">FACT</span> Drude/Appleton slab  ε = 1 − ω_p²/(ω(ω+iν)),  n = √ε,  α = (ω/c)·Im n,  A_sh = 8.686 α d  dB;  1−|Γ|² = 4 Re n / |n+1|²
-<span class="tag">FACT</span> TinySA Ultra floor  −102 dBm + 10 log(RBW/30 kHz)   (tinysa.org TinySA4 spec, no LNA)
-<span class="tag">FACT</span> external noise  F_a = c − d·log f_MHz  (ITU-R P.372 Table 1),  N_ext = kT₀B·F_a;  Hively RX sees N_ext·10^(−SE/10)
+<!-- ============ FULL CONTROLS ============ -->
+<section class="panel" id="p-full" hidden>
+<p style="margin-top:0">Distance, plasma density, band and η are on the front. Everything else is here. <button type="button" class="btn2" id="reset">Reset all to defaults</button></p>
+<fieldset><legend>Flight and plasma (FACT)</legend>
+<div class="controls">
+  <label>Altitude (km above sea level) <output id="oh"></output><input id="h_km" type="range" min="30" max="90" step="1" value="70"></label>
+  <label>Mach number (speed ÷ local speed of sound) <output id="omach"></output><input id="mach" type="range" min="5" max="26" step="0.5" value="25"></label>
+  <label>Collision rate ν × (ν, “nu”, is how often each electron bumps into air molecules per second; ×1 = RAM-C II value scaled to altitude) <output id="onu"></output><input id="nu_scale_l" type="range" min="-1" max="1" step="0.05" value="0"></label>
+  <label class="shear-hi">Shear rate S (how fast the gas speed changes with height, 1/s, log₁₀) <output id="oS"></output><input id="log10_S" type="range" min="4" max="8" step="0.1" value="6"></label>
+  <label>Shear-layer thickness δ (“delta”, how thick the fast-changing layer is, mm) <output id="odl"></output><input id="delta_l" type="range" min="0" max="2" step="0.05" value="1"></label>
+  <label>Earth's magnetic field B (microtesla, µT) <output id="oB"></output><input id="B_uT" type="range" min="25" max="65" step="1" value="50"></label>
+  <label>Angle θ between gas flow and magnetic field (°; 90 = strongest push) <output id="oth"></output><input id="theta_deg" type="range" min="0" max="90" step="1" value="90"></label>
+  <label>How the current is driven <select id="mech"><option value="vxB" selected>Motion through Earth's field (Ohm's law, default)</option><option value="diff">Electron diffusion down the density slope (extreme upper bound)</option></select></label>
+  <label>Electron temperature T<sub>e</sub> (kelvin) <output id="oTe"></output><input id="Te_K" type="range" min="2000" max="20000" step="500" value="6000"></label>
+  <label>Current closure f<sub>close</sub> (fraction of the push that becomes real current; 1 = upper limit, log₁₀) <output id="ofc"></output><input id="f_close_l" type="range" min="-3" max="0" step="0.1" value="0"></label>
+  <label>Turbulence level δn/n (size of density flicker as a fraction of the density) <output id="omt"></output><input id="m_t" type="range" min="0.01" max="0.5" step="0.01" value="0.1"></label>
+  <label>Turbulent sheet area A<sub>s</sub> (square metres, m²) <output id="oAs"></output><input id="A_s" type="range" min="0.1" max="10" step="0.1" value="1"></label>
+  <label>Plasma thickness d between the current and open air (cm) <output id="odsh"></output><input id="d_sh" type="range" min="0.5" max="20" step="0.5" value="5"></label>
+</div></fieldset>
+<fieldset><legend>Receiver and noise (FACT)</legend>
+<div class="controls">
+  <label>Antenna collecting-area model <select id="aperture"><option value="auto" selected>Auto (from the band preset)</option><option value="hub">Small Hively antenna: π(5 cm)² × 0.5 (hub convention, HYP)</option><option value="recip">Full-size resonant antenna: λ²/4π (λ = wavelength; HYP)</option></select></label>
+  <label>Receiver bandwidth RBW (resolution bandwidth, kHz; wider = more noise) <output id="orbw"></output><input id="rbw_k" type="range" min="0.2" max="600" step="0.1" value="30"></label>
+  <label>Shielding SE (how many dB the Faraday shield and sleeve balun cut ordinary radio) <output id="oSE"></output><input id="SE_dB" type="range" min="0" max="80" step="1" value="55"></label>
+  <label>Local radio noise (ITU-R P.372 site type) <select id="noise_env"><option value="quiet_rural" selected>quiet rural</option><option value="rural">rural</option><option value="residential">residential</option><option value="city">city</option><option value="none">none (TinySA's own noise only)</option></select></label>
+</div></fieldset>
+<fieldset><legend>Unknown EED couplings (SWEEP: no measured value exists)</legend>
+<div class="controls">
+  <label>χ (“chi”): how much the plasma sheath weakens the SLW, as a fraction of how much it weakens ordinary radio (0 = not at all, as Hively & Loebl 2019 claim; 1 = as much as radio) <output id="ochi"></output><input id="chi" type="range" min="0" max="1" step="0.05" value="0"></label>
+  <label>κ<sub>C</sub> (“kappa-C”): how well a receiver responds to a pure scalar wave (SW), which has no electric field at all. No such receiver exists yet (log₁₀) <output id="okap"></output><input id="log10_kappa" type="range" min="-12" max="0" step="0.1" value="0"></label>
+</div></fieldset>
+<h3>Detailed readouts</h3>
+<div class="meters" id="meters"></div>
+</section>
 
-<span class="tag hyp">HYP</span> ledger (SI):  C = ∇·A + c⁻² ∂tΦ ;  □C = −μ₀ (∂tρ + ∇·J) ;  ∇·E + ∂tC = ρ/ε₀ ;  ∇×B − c⁻²∂tE − ∇C = μ₀J
-<span class="tag hyp">HYP</span> SLW flux (Hively &amp; Loebl 2019 Eq. B5; US 9,306,527 Eq. 15 spread over 4πr²):
-   S_SLW(r) = Z₀ (η I_pk)² / (4π r)² · 10^(−χ A_sh/10)       ← 1/r², isotropic ("SLW free-space attenuation goes like 1/r²", HL2019 Table I item 11)
-<span class="tag hyp">HYP</span> same result via the ledger: the retarded solution of □C with ∫(∂tρ+∇·J)dV = η I_pk gives C = μ₀ η I_pk/(4πr);
-   HL2019 Eq. 37 far field |E_r| = Z₀|C/μ₀|  ⇒  C E/μ₀ = Z₀ (η I_pk)²/(4πr)²  (identical to Eq. B5)
-<span class="tag hyp">HYP</span> SW proxy (E = B = 0, Ohmic-off, so no sheath Joule term): energy density C²/2μ₀ moving at c
-   S_SW = c C²/(2μ₀) = ½ S_SLW(χ = 0);  P_SW = κ_C · S_SW · A_rx       (SW energy through a sphere is constant, so also 1/r²: HL2019 §VII)
-<span class="tag hyp">HYP</span> receive: P = S · A_rx,  A_rx = π(0.05 m)²·0.5 (hub SleeveBalunSNR) or λ²/4π (reciprocity, HL2019 §VI + isotropy)
+<!-- ============ FACT vs HYP ============ -->
+<section class="panel" id="p-facthyp" hidden>
+<p style="margin-top:0"><span class="tag">FACT</span> = published or textbook physics, cited. <span class="tag hyp">HYP</span> = Hively's EED, used exactly as he printed it (not accepted physics). <span class="tag asm">ASSUMPTION</span> = a modelling choice made here. <span class="tag sweep">SWEEP</span> = unknown, so it is a slider and never a single value.</p>
+<h3>Symbols in plain words</h3>
+<dl class="gloss">
+<dt>n<sub>e</sub></dt><dd>number of free electrons per cubic metre in the plasma</dd>
+<dt>e, m<sub>e</sub></dt><dd>charge of one electron (1.6×10⁻¹⁹ coulomb) and its mass (9.1×10⁻³¹ kg)</dd>
+<dt>ε₀, μ₀</dt><dd>permittivity and permeability of free space: constants that set how strongly electric and magnetic fields arise in vacuum</dd>
+<dt>c</dt><dd>speed of light, 299 792 458 m/s</dd>
+<dt>Z₀</dt><dd>impedance of free space, about 377 ohms: the ratio of electric to magnetic field strength in a radio wave</dd>
+<dt>f<sub>p</sub>, ω<sub>p</sub></dt><dd>plasma frequency. Below it, the plasma reflects radio (ω = 2π × frequency)</dd>
+<dt>ν</dt><dd>“nu”, electron collision rate: collisions per second with air molecules</dd>
+<dt>σ</dt><dd>“sigma”, electrical conductivity of the plasma, in siemens per metre (S/m)</dd>
+<dt>J</dt><dd>current density: amperes flowing through each square metre</dd>
+<dt>I</dt><dd>current in amperes. I<sub>pk</sub> is the peak of the flickering current inside the receiver's band</dd>
+<dt>S, δ, Δu</dt><dd>shear rate (1/s); layer thickness (m); speed difference across the layer, Δu = S·δ, capped at the flight speed U (m/s)</dd>
+<dt>B</dt><dd>magnetic field (Earth's is about 50 microtesla)</dd>
+<dt>ρ</dt><dd>“rho”, electric charge per cubic metre</dd>
+<dt>Φ, A</dt><dd>electric scalar potential (volts) and magnetic vector potential: the “potentials” from which E and B are built</dd>
+<dt>E</dt><dd>electric field (volts per metre). E<sub>L</sub> is the part pointing along the direction of travel (“longitudinal”)</dd>
+<dt>C</dt><dd>Hively's extra scalar field, C = ∇·A + c⁻²∂Φ/∂t. It is zero in standard electromagnetism, where it is set to zero by the usual “Lorenz gauge” choice</dd>
+<dt>∇·, ∂/∂t, □</dt><dd>divergence (net outflow from a point); rate of change in time; the wave operator (∇² − c⁻²∂²/∂t²), which describes waves moving at c</dd>
+<dt>r, λ, k</dt><dd>distance to the receiver; wavelength; wavenumber k = 2π/λ</dd>
+<dt>k<sub>B</sub>, T<sub>e</sub>, T<sub>b</sub></dt><dd>Boltzmann constant (1.38×10⁻²³ J/K); electron temperature (kelvin); brightness temperature of the plasma glow</dd>
+<dt>U, θ</dt><dd>flight speed (m/s); angle between the gas flow and the magnetic field</dd>
+<dt>f<sub>close</sub>, δn/n</dt><dd>fraction of the magnetic push that becomes real current; size of the density flicker as a fraction of the density</dd>
+<dt>A<sub>s</sub>, N<sub>c</sub>, f<sub>c</sub></dt><dd>area of the turbulent sheet (m²); number of turbulent cells in it; the flicker “corner” frequency S/2π</dd>
+<dt>ε, n, α, Γ</dt><dd>plasma permittivity; refractive index; loss per metre; reflection coefficient at the plasma edge</dd>
+<dt>A<sub>rx</sub></dt><dd>antenna collecting area (effective aperture, m²): received power = power per m² × A<sub>rx</sub></dd>
+<dt>F<sub>a</sub>, T₀</dt><dd>outside radio-noise level above thermal (dB, ITU-R P.372); reference temperature 290 K</dd>
+<dt>η, χ, κ<sub>C</sub></dt><dd>the unknown EED couplings (see the Assumptions tab)</dd>
+<dt>SNR, dB, dBm</dt><dd>signal-to-noise ratio; decibels (10·log₁₀ of a power ratio); decibels relative to 1 milliwatt</dd>
+<dt>RBW, SE</dt><dd>receiver resolution bandwidth; shielding effectiveness of the Faraday enclosure (dB)</dd>
+</dl>
+<h3>Equations</h3>
+<p class="eq"><span class="tag">FACT</span> plasma frequency  ω_p = √(n_e e²/ε₀ m_e),  f_p = ω_p/2π ≈ 8.98 √n_e Hz   (NRL Plasma Formulary)
+<span class="tag">FACT</span> collision rate  ν(h) = 2.51×10⁹ s⁻¹ × ρ_air(h)/ρ_air(45.72 km) × (ν slider)   (Grantham, NASA TN D-6062, p.12; ρ_air = air density, US Std Atmosphere 1976)
+   <span class="tag asm">ASSUMPTION</span> ν grows in proportion to air density
+<span class="tag">FACT</span> conductivity  σ = n_e e²/(m_e ν);   electron diffusivity  D_e = k_B T_e/(m_e ν)   (k_B = Boltzmann constant)
+<span class="tag">FACT</span> Ohm's law in the shear layer  J = f_close · σ · Δu · B · sin θ,   Δu = min(S·δ, U)   (f_close = 1: upper limit)
+   option: J = f_close · e · D_e · n_e / δ   (unbalanced electron diffusion; real net current is near zero, so this is an extreme bound)
+<span class="tag asm">ASSUMPTION</span> turbulent cells of size δ with random phases:  I_src,rms = (δn/n) · J · δ · √A_s   (rms = root-mean-square)
+<span class="tag asm">ASSUMPTION</span> flicker spectrum flat up to f_c = S/2π, then falling as f^(−5/3) (Kolmogorov turbulence; no upper cutoff, so optimistic at GHz)
+   fraction of flicker power inside the receiver band  F = RBW · g(f)/(2.5 f_c);   I_pk = √2 · I_src,rms · √F
+<span class="tag">FACT</span> plasma slab  ε = 1 − ω_p²/(ω(ω+iν)),  n = √ε (refractive index),  α = (ω/c)·Im n (loss per metre),  loss = 8.686·α·d dB;  entry/exit transmission 1−|Γ|² = 4 Re n/|n+1|²
+<span class="tag">FACT</span> TinySA Ultra noise floor  −102 dBm + 10·log₁₀(RBW/30 kHz)   (no preamp)
+<span class="tag">FACT</span> outside radio noise  F_a = c₁ − d₁·log₁₀(f in MHz)  (ITU-R P.372 Table 1);  noise = k_B·T₀·RBW·F_a (T₀ = 290 K); a shielded Hively receiver sees it reduced by SE
 
-<span class="tag">FACT</span> classical TEM from the same cells (Balanis 4-16, incoherent): P = N_c Z₀ (π/3)(I_cell,pk ℓ_c/λ)²,  × (1−|Γ|²) × 10^(−A_sh/10),  A_TEM = 1.5 λ²/4π
-<span class="tag">FACT</span> thermal (Kirchhoff, optically thick): T_b = T_e (1−|Γ|²);  P = k T_b B · 1.5 A_s/(4π r²)</p>
+<span class="tag hyp">HYP</span> Hively EED, SI form (hub ledger):  C = ∇·A + c⁻² ∂Φ/∂t ;   □C = −μ₀ (∂ρ/∂t + ∇·J) ;   ∇·E + ∂C/∂t = ρ/ε₀ ;   ∇×B − c⁻²∂E/∂t − ∇C = μ₀J
+   (in standard physics ∂ρ/∂t + ∇·J = 0 always, i.e. charge is conserved, so C stays zero; η measures how much this fails)
+<span class="tag hyp">HYP</span> SLW power per square metre at distance r  (Hively &amp; Loebl 2019 Eq. B5; US 9,306,527 Eq. 15):
+   S_SLW(r) = Z₀ (η·I_pk)² / (4π r)²  × 10^(−χ·loss/10)     ← falls as 1/r² (HL2019 Table I: "The SLW free-space attenuation goes like 1/r²")
+<span class="tag hyp">HYP</span> same answer via the ledger: C = μ₀ η I_pk/(4π r), and HL2019 Eq. 37 gives E_L = Z₀·C/μ₀, so C·E_L/μ₀ = Z₀(η I_pk)²/(4πr)²
+<span class="tag hyp">HYP</span> scalar-wave (SW) proxy: E = B = 0, so no heating loss in conductors; energy C²/2μ₀ moving at c:  S_SW = ½ S_SLW(χ = 0);  P_SW = κ_C · S_SW · A_rx
+<span class="tag hyp">HYP</span> received power  P = S · A_rx,  A_rx = π(0.05 m)² × 0.5 (hub convention) or λ²/4π (full-size antenna; reciprocity, HL2019 §VI)
 
-<h2 id="couplings">Unknown couplings and how they are swept</h2>
+<span class="tag">FACT</span> ordinary radio from the same flickering currents (tiny antennas of length δ; Balanis Eq. 4-16):  P = N_c Z₀ (π/3)(I_cell δ/λ)²,  then plasma loss, received on an ordinary dipole of area 1.5 λ²/4π  (N_c = A_s/δ² cells)
+<span class="tag">FACT</span> plasma glow (thermal emission):  T_b = T_e (1−|Γ|²);  P = k_B T_b RBW · 1.5 A_s/(4π r²)</p>
+</section>
+
+<!-- ============ ASSUMPTIONS ============ -->
+<section class="panel" id="p-assume" hidden>
+<h3>Unknown couplings (swept, never fixed)</h3>
 <div style="overflow-x:auto"><table class="res">
-<tr><th>Symbol</th><th>Meaning</th><th>Why unknown</th><th>Swept range</th></tr>
-<tr><td class="l">η <span class="tag sweep">SWEEP</span></td><td class="l">fraction of the in-band fluctuating sheath current that sources C (non-conserved / irrotational, per the ledger □C source and HL2019 Eq. 36)</td><td class="l">Standard physics has ∂tρ+∇·J ≡ 0, so η = 0. Hively's short-time charge-fluctuation reading is unquantified</td><td>10⁻¹²…1 (1 = Hively balun antenna)</td></tr>
-<tr><td class="l">χ <span class="tag sweep">SWEEP</span></td><td class="l">SLW loss crossing the sheath, as a fraction of the Drude dB</td><td class="l">HL2019 App. A says no loss in conductive media (□E = 0). The hub SW-vs-SLW page expects σE² Joule loss</td><td>0…1</td></tr>
-<tr><td class="l">κ<sub>C</sub> <span class="tag sweep">SWEEP</span></td><td class="l">receiver response to pure C (SW has E = 0)</td><td class="l">No SW receiver exists (hub SW-vs-SLW: needs a loop / E-probe / bifilar triad)</td><td>10⁻¹²…1</td></tr>
-<tr><td class="l">f<sub>close</sub> <span class="tag asm">FACT-side</span></td><td class="l">how much of the motional EMF drives a net current (polarization shorting)</td><td class="l">Needs a sheath MHD solution; not in the flight reports</td><td>10⁻³…1 (default 1 = upper bound)</td></tr>
+<tr><th>Symbol</th><th>Plain meaning</th><th>Why nobody knows it</th><th>Range explored</th></tr>
+<tr><td class="l">η <span class="tag sweep">SWEEP</span></td><td class="l">Fraction of the plasma's in-band current that would launch an SLW (source C) if Hively is right</td><td class="l">Standard physics conserves charge exactly, which gives η = 0. Hively attributes the source to short-time charge fluctuations but gives no size</td><td>10⁻¹² … 1 (1 = Hively's own antenna)</td></tr>
+<tr><td class="l">χ <span class="tag sweep">SWEEP</span></td><td class="l">How much the plasma weakens the SLW, relative to ordinary radio</td><td class="l">Hively &amp; Loebl 2019 App. A says zero loss. The hub SW-vs-SLW page expects heating loss from the SLW's electric field</td><td>0 … 1</td></tr>
+<tr><td class="l">κ<sub>C</sub> <span class="tag sweep">SWEEP</span></td><td class="l">How well any receiver responds to a pure scalar wave</td><td class="l">No SW receiver exists (it would need a loop, an E-probe and a bifilar coil logged together)</td><td>10⁻¹² … 1</td></tr>
+<tr><td class="l">f<sub>close</sub> (measured-physics unknown)</td><td class="l">Fraction of the magnetic push that becomes real current</td><td class="l">Needs a full plasma-flow simulation</td><td>10⁻³ … 1 (default 1 = upper limit, so the η shown is the minimum needed)</td></tr>
 </table></div>
-
-<h2 id="assume">Assumptions (explicit)</h2>
-<div class="card"><ol class="tight">
-<li>n<sub>e</sub> is an independent input (10¹⁴–10²⁰ m⁻³). RAM-C II anchors only the ≈7.6 km/s case: electrostatic probes at 1–7 cm aft read 10¹⁴–10¹⁸ m⁻³ from 85 to 53 km (Jones &amp; Cross, TN D-6617), reflectometers covered 10¹⁶–10¹⁹ m⁻³ (Grantham, TN D-6062), and CFD gives a 61 km stagnation peak of ≈1.9×10²⁰ m⁻³. Lower Mach generally means far lower n<sub>e</sub>, which is not modelled.</li>
-<li>ν scales with USSA-1976 neutral density from Grantham's 2.51×10⁹ s⁻¹ at 45.72 km, with a ×0.1…×10 slider.</li>
-<li>The shear-layer current is Ohm's law with the geomagnetic motional field. Full closure is the upper bound. The diffusion option is an extreme bound (ambipolar ⇒ net ≈ 0).</li>
-<li>Turbulent cells have correlation length ℓ<sub>c</sub> = δ and random phases. δn/n = δJ/J. The spectrum is flat to S/2π, then f<sup>−5/3</sup>, with no dissipation cutoff (optimistic at 433/1296 MHz).</li>
-<li>Equivalent-sinusoid I<sub>pk</sub> = √2 I<sub>rms</sub>, fed into Hively's Eq. B5, which is printed without a ½ time-average factor (±3 dB ambiguity).</li>
-<li>Far field (kr ≫ 1). No path loss between the sheath and the receiver (neutral air σ is negligible; ionospheric paths are not modelled). Line of sight is assumed. A ground receiver needs r ≥ altitude.</li>
-<li>The SLW receive aperture is either the hub SleeveBalunSNR convention (π(5 cm)²·0.5) or λ²/4π (reciprocal isotropic, needs a resonant antenna ≈ λ/4 long, e.g. ≈75 m at 1 MHz).</li>
-<li>The Hively RX rejects TEM (ambient noise and classical signals) by SE dB (default 55 dB, the hub's "sealed" tent value). The SLW is assumed to pass the Faraday isolation unattenuated (HYP).</li>
-<li>Classical TEM: a Hertzian-dipole sum inside the plasma, then slab escape (normal incidence). Thermal: an optically thick slab at T<sub>e</sub>.</li>
-<li>The SW proxy uses the same η as the SLW (the same C source), with an energy flux of c·C²/2μ₀ (C obeys □C = source ⇒ speed c).</li>
-</ol></div>
-
-<h2 id="verdictS">Detectability verdict (with uncertainty)</h2>
-<div class="card">
+<h3>Assumptions</h3>
+<ol class="tight">
+<li>Plasma density is set by you, independent of Mach. RAM-C II anchors only about 7.6 km/s: probes read 10¹⁴–10¹⁸ m⁻³ at 1–7 cm off the aft body, reflectometers 10¹⁶–10¹⁹, and CFD gives ≈1.9×10²⁰ at the nose at 61 km. At Mach 5–10 the real density would be far lower.</li>
+<li>Collision rate scales with air density from Grantham's 2.51×10⁹ /s at 45.72 km (the ×0.1…×10 slider covers the spread).</li>
+<li>Current = Ohm's law with Earth's field at full closure (upper limit). The diffusion option is an extreme bound.</li>
+<li>Turbulent cells are the size of the layer thickness with random phases. The flicker spectrum is flat up to S/2π, then falls as f^−5/3 with no cutoff (optimistic at 433/1296 MHz).</li>
+<li>Peak current = √2 × rms, fed into Hively's Eq. B5, which is printed without the usual ½ time-average factor (±3 dB).</li>
+<li>The receiver is far from the source (many wavelengths away). There is no extra loss along the air path. Line of sight is assumed. A ground receiver needs a distance at least equal to the altitude.</li>
+<li>Antenna collecting area: the hub convention for Dan's small antennas, or λ²/4π for a full-size resonant antenna.</li>
+<li>The shielded receiver cuts ordinary radio by SE dB (default 55). The SLW is assumed to pass the shield (HYP).</li>
+<li>The ordinary-radio estimate treats each turbulent cell as a tiny antenna inside the plasma. The plasma glow assumes an opaque slab at T<sub>e</sub>.</li>
+<li>The SW proxy uses the same η as the SLW, with energy C²/2μ₀ moving at c.</li>
+</ol>
+<h3>Verdict with uncertainty (baseline, 100 km)</h3>
 <ul class="tight">
-<li><strong>433.92 / 1296 MHz Hively-style receivers + TinySA (no LNA)</strong>: not detectable at ≥10 km for any η ≤ 1 under the v×B estimate (η<sub>th</sub> ≥ 1.7 at 10 km and ≥ 17 at 100 km, even with n<sub>e</sub> = 10²⁰ and full closure). The only exception is the unphysical unbalanced-diffusion bound at n<sub>e</sub> = 10²⁰, where η<sub>th</sub> ≈ 0.1–1 at 100 km.</li>
-<li><strong>30 MHz, hub aperture</strong>: η<sub>th</sub> ≈ 570 (n<sub>e</sub> 10¹⁸) and ≈ 5.7 (10²⁰) at 100 km. Not detectable.</li>
-<li><strong>≈1 MHz, large resonant SLW antenna (λ²/4π)</strong>: detectable only if η &gt; 0.025 (n<sub>e</sub> 10¹⁸) or η &gt; 2.5×10⁻⁴ (10²⁰) at 100 km. The FACT-side uncertainty in that threshold is roughly ±2–3 decades: closure 3 decades, shear 2.5, n<sub>e</sub> ±2, δ −1…+1.9, δn/n −0.7…+1, ν ±1 (Fig. 6).</li>
-<li><strong>SW proxy</strong>: needs η·√κ<sub>C</sub> ≥ √2·η<sub>th</sub>. No SW receiver exists, so κ<sub>C</sub> is unconstrained.</li>
-<li><strong>Classical</strong>: the TEM from the same currents and the sheath's thermal emission are at least ≈110 dB below the floor at 100 km for the v×B estimate (≥ 70 dB for the diffusion bound; up to hundreds of dB under full blackout) (FACT). The sheath is "seen" classically only by radar, optical/IR, and blackout of its own telemetry.</li>
-<li>Higher shear helps only by pushing f<sub>c</sub> up. J depends on Δu = S·δ, which is capped at the flight speed, so a thinner layer at the same Δu <em>lowers</em> the current. "Shear as amplifier" holds only at fixed δ.</li>
-</ul></div>
+<li><b>Dan's 433.92 / 1296 MHz antennas:</b> not detectable for any η ≤ 1 (needed η ≥ 17 even at n<sub>e</sub> = 10²⁰; ≥ 1.7 at 10 km).</li>
+<li><b>30 MHz reference:</b> needed η ≈ 570 (n<sub>e</sub> 10¹⁸), ≈ 5.7 (10²⁰). Not detectable.</li>
+<li><b>Hypothetical 75 m antenna at 1 MHz:</b> detectable only if η &gt; 0.025 (n<sub>e</sub> 10¹⁸) or 2.5×10⁻⁴ (10²⁰). The measured-physics inputs alone make this uncertain by about ±2–3 decades (Fig 6).</li>
+<li><b>Ordinary radio and plasma glow:</b> ≥ ≈110 dB below the floor (v×B case).</li>
+</ul>
+</section>
 
-<h2 id="figs">Python reference figures</h2>
-<figure><img src="plots/fig1_power_vs_range.png" alt="Fig 1" loading="lazy"><figcaption>Fig 1 — received power vs range at baseline (1 MHz and 433.92 MHz; hub and reciprocal apertures).</figcaption></figure>
-<figure><img src="plots/fig2_eta_threshold_vs_range.png" alt="Fig 2" loading="lazy"><figcaption>Fig 2 — η needed for SNR = 0 dB vs range, n<sub>e</sub> = 10¹⁶/10¹⁸/10²⁰, four bands.</figcaption></figure>
-<figure><img src="plots/fig3_eta_threshold_ne_shear.png" alt="Fig 3" loading="lazy"><figcaption>Fig 3 — η threshold over n<sub>e</sub> × shear at 100 km.</figcaption></figure>
-<figure><img src="plots/fig4_sheath_blackout.png" alt="Fig 4" loading="lazy"><figcaption>Fig 4 — FACT classical blackout: Drude slab loss and interface loss vs frequency.</figcaption></figure>
-<figure><img src="plots/fig6_sensitivity_tornado.png" alt="Fig 6" loading="lazy"><figcaption>Fig 6 — sensitivity of η<sub>th</sub> to the FACT-side inputs (1 MHz, reciprocal aperture, 100 km).</figcaption></figure>
+<!-- ============ SOURCES ============ -->
+<section class="panel" id="p-sources" hidden>
+<ul class="tight" style="font-size:.92rem">
+<li>Grantham, W. L., NASA TN D-6062 (1970), RAM-C II microwave reflectometers. <a href="https://ntrs.nasa.gov/citations/19710004000">ntrs.nasa.gov/citations/19710004000</a></li>
+<li>Jones, W. L. &amp; Cross, A. E., NASA TN D-6617 (1972), RAM-C electrostatic probes. <a href="https://ntrs.nasa.gov/citations/19720011555">ntrs.nasa.gov/citations/19720011555</a></li>
+<li>Schexnayder, Huber &amp; Evans, NASA TN D-6294 (1971). <a href="https://ntrs.nasa.gov/citations/19710016599">ntrs.nasa.gov/citations/19710016599</a></li>
+<li>RAM-C II 61 km CFD peak 1.9×10²⁰ m⁻³: <a href="https://eprints.soton.ac.uk/498700">eprints.soton.ac.uk/498700</a>. Conditions: arXiv:2410.12760.</li>
+<li>NRL Plasma Formulary; US Standard Atmosphere 1976 (NASA-TM-X-74335); CODATA 2018 constants.</li>
+<li>ITU-R Rec. P.372 (Radio noise), Table 1. <a href="https://www.itu.int/rec/R-REC-P.372/en">itu.int/rec/R-REC-P.372</a></li>
+<li>TinySA Ultra (TinySA4) specification: <a href="https://tinysa.org/wiki/pmwiki.php?n=TinySA4.Specification">tinysa.org</a> (as used on the hub FX-1 page)</li>
+<li>Balanis, <em>Antenna Theory</em> 3e, Eqs. 4-8…4-16.</li>
+<li>Hively, L. M. &amp; Loebl, A. S., <em>Classical and extended electrodynamics</em>, Physics Essays 32(1), 112 (2019), <a href="https://doi.org/10.4006/0836-1398-32.1.112">doi:10.4006/0836-1398-32.1.112</a>: Eqs. 36–38, 44, App. A–B (Eq. B5), Table I.</li>
+<li>Hively, L. M., US Patent 9,306,527 B1 (2016), Eq. 15.</li>
+<li>Hively, L. M. &amp; Giakos, G. C., Int. J. Signal Imaging Syst. Eng. 5, 3 (2012), cited through HL2019.</li>
+<li>Hub pages: <a href="https://9wzg44nz44-glitch.github.io/sw-vs-slw.html">SW vs SLW</a>, <a href="https://9wzg44nz44-glitch.github.io/c-nuclei.html">C × nuclei</a>, <a href="https://9wzg44nz44-glitch.github.io/fx1-snr.html">FX-1 SNR</a>.</li>
+<li><span class="tag hyp">illustration only</span> <a href="https://starfire.tech/O-Animator/Art-n-Science/">O-Animator · Art-n-Science</a>: a qualitative sketch of charged-medium organization in shear and vortex structures. Never used as a source of numbers.</li>
+</ul>
+</section>
 
-<h2 id="illus">Illustrative only</h2>
-<div class="card"><p style="margin:0"><span class="tag hyp">HYP sketch</span> <a href="https://starfire.tech/O-Animator/Art-n-Science/">O-Animator · Art-n-Science</a> shows a qualitative animation of how a charged medium might organize in shear and vortex structures. It is linked for intuition only and is <strong>never</strong> a source of numbers on this page.</p></div>
-
-<h2 id="sources">Sources</h2>
-<div class="card"><ul class="tight" style="font-size:.9rem">
-<li>Grantham, W. L., <em>Flight results of a 25 000-ft/s reentry experiment using microwave reflectometers…</em>, NASA TN D-6062 (1970). <a href="https://ntrs.nasa.gov/citations/19710004000">ntrs.nasa.gov/citations/19710004000</a> (reflectometer range 10¹⁰–10¹³ cm⁻³; ν values p.12; blackout)</li>
-<li>Jones, W. L. &amp; Cross, A. E., <em>Electrostatic-probe measurements of plasma parameters for two reentry flight experiments at 25 000 ft/s</em>, NASA TN D-6617 (1972). <a href="https://ntrs.nasa.gov/citations/19720011555">ntrs.nasa.gov/citations/19720011555</a> (10⁸–10¹² cm⁻³ at 1–7 cm, 85.3–53.3 km)</li>
-<li>Schexnayder, Huber &amp; Evans, <em>Calculation of electron concentration for a blunt body at orbital speeds and comparison with experimental data</em>, NASA TN D-6294 (1971). <a href="https://ntrs.nasa.gov/citations/19710016599">ntrs.nasa.gov/citations/19710016599</a></li>
-<li>RAM-C II 61 km CFD stagnation peak 1.9×10²⁰ m⁻³: Univ. Southampton eprint <a href="https://eprints.soton.ac.uk/498700">eprints.soton.ac.uk/498700</a>. RAM-C II geometry/conditions: arXiv:2410.12760.</li>
-<li>NRL Plasma Formulary (f<sub>pe</sub> = 8.98 √n<sub>e</sub> Hz, SI). US Standard Atmosphere 1976 (NASA-TM-X-74335). CODATA 2018 constants.</li>
-<li>ITU-R Rec. P.372 (Radio noise), Table 1 man-made noise constants. <a href="https://www.itu.int/rec/R-REC-P.372/en">itu.int/rec/R-REC-P.372</a></li>
-<li>TinySA Ultra (TinySA4) specification, noise floor −102 dBm @ 30 kHz RBW without LNA: <a href="https://tinysa.org/wiki/pmwiki.php?n=TinySA4.Specification">tinysa.org TinySA4 Specification</a> (as used by the hub FX-1 SNR page)</li>
-<li>Balanis, <em>Antenna Theory</em> 3e, Eqs. 4-8…4-16 (Hertzian dipole).</li>
-<li>Hively, L. M. &amp; Loebl, A. S., <em>Classical and extended electrodynamics</em>, Physics Essays 32(1), 112 (2019), <a href="https://doi.org/10.4006/0836-1398-32.1.112">doi:10.4006/0836-1398-32.1.112</a> (hub PDF mirror in /papers): Eqs. 36–38, 44, App. A–B (Eq. B5), Table I.</li>
-<li>Hively, L. M., US Patent 9,306,527 B1 (2016), Eq. 15: P<sub>OUT</sub> = (I²/4π)√(μ/ε).</li>
-<li>Hively, L. M. &amp; Giakos, G. C., Int. J. Signal Imaging Syst. Eng. 5, 3 (2012), cited via HL2019 (not re-derived here).</li>
-<li>Hub pages: <a href="https://9wzg44nz44-glitch.github.io/sw-vs-slw.html">SW vs SLW</a> (Joule split, triad), <a href="https://9wzg44nz44-glitch.github.io/c-nuclei.html">C × nuclei</a> (□C form; Hively: SW "no Joule, but 1/r²"), <a href="https://9wzg44nz44-glitch.github.io/fx1-snr.html">FX-1 SNR</a> (TinySA floor, receiver conventions).</li>
-</ul></div>
+<!-- ============ VERSION ============ -->
+<section class="panel" id="p-version" hidden>
+<ul class="tight">
+<li><b>Page layout:</b> <code id="verUI"></code> (novice layout; UI only).</li>
+<li><b>Physics:</b> <code id="verPhys"></code>. The engine <a href="js/slw-detect.js">js/slw-detect.js</a> is unchanged from the physics release.</li>
+<li><b>Cloud twin pending sync (<span id="verCloud"></span>).</b> The Wolfram Mathematica twin <a href="wolfram/ExptDDetect.wl">wolfram/ExptDDetect.wl</a> is written but has not been run (no Wolfram kernel on the build machine). Its Manipulate labels mirror this page.</li>
+<li><b>JS vs Python reference</b> (<a href="sim/expt_d_model.py">sim/expt_d_model.py</a>, 2,304-point grid × 46 outputs, rel tol 1e-9): <b>PASS 105,985 / FAIL 0</b>, re-run after this layout change.</li>
+<li><b>JS vs Wolfram:</b> owed. Run <code>wolfram/ExptDDetect_RunGrid.wl</code>, then <code>node sim/compare_outputs.mjs</code>.</li>
+<li>Repo: <a href="https://github.com/9wzg44nz44-glitch/Experiment-D-Hypersonic-Plasma-Shear-SLW">github.com/9wzg44nz44-glitch/Experiment-D-Hypersonic-Plasma-Shear-SLW</a></li>
+</ul>
+</section>
 
 <footer>
-  <strong>Dan Britton</strong> · Experiment D · detectability estimate <code id="verFoot">expt-d-detect-v0.1</code> · Cloud twin pending sync (expt-d-detect-v0.1)<br>
-  No flight measurements claimed. EED/SLW/SW are not settled physics. Every quantity is tagged FACT / HYP / ASSUMPTION / SWEEP.
+  <strong>Dan Britton</strong> · Experiment D · educational estimate · <span id="verFoot"></span><br>
+  No flight measurements claimed. EED / SLW / SW are not settled physics.
 </footer>
 </main>
 
 <script src="js/slw-detect.js"></script>
 <script>
 (function(){
+  "use strict";
   const X = window.ExptDDetect, $ = (id) => document.getElementById(id);
-  ["verTop","verBanner","verFoot"].forEach(id => $(id).textContent = X.VERSION);
-  const FR = [[1e6,"1 MHz"],[30e6,"30 MHz"],[433.92e6,"433.92 MHz"],[1296e6,"1296 MHz"]];
-  const fe = (x, d=2) => (x===null||!isFinite(x)) ? "—" : (Math.abs(x) >= 1e4 || Math.abs(x) < 1e-2 ? x.toExponential(d) : x.toPrecision(d+1));
+  const UI = "UI v0.1.1";
+  const PHYS = X.VERSION; // physics version string, unchanged
+  $("verTop").textContent = PHYS; $("verLine").textContent = UI + " · physics " + PHYS;
+  $("verUI").textContent = UI; $("verPhys").textContent = PHYS; $("verCloud").textContent = PHYS; $("verFoot").textContent = UI + " · physics " + PHYS;
+  // band presets: frequency + automatic collecting-area model (unchanged numbers)
+  const BANDS = { "433":[433.92e6,"hub","433.92 MHz"], "1296":[1296e6,"hub","1296 MHz"], "30":[30e6,"hub","30 MHz"], "1":[1e6,"recip","1 MHz"] };
+  const ORDER = ["1","30","433","1296"];
+  const fe = (x, d=2) => (x===null||!isFinite(x)) ? "—" : (Math.abs(x) >= 100 && Math.abs(x) < 1e4) ? String(Math.round(x)) : (Math.abs(x) >= 1e4 || Math.abs(x) < 1e-2 ? x.toExponential(d) : x.toPrecision(d+1));
   const fd = (x) => (x===null||!isFinite(x)) ? "—" : x.toFixed(1);
+  const apFor = (bandKey) => $("aperture").value === "auto" ? BANDS[bandKey][1] : $("aperture").value;
   function params(){
+    const b = $("band").value;
     return {
       h_km:+$("h_km").value, mach:+$("mach").value, log10_ne:+$("log10_ne").value, nu_scale:Math.pow(10,+$("nu_scale_l").value),
       log10_S:+$("log10_S").value, delta_m:Math.pow(10,+$("delta_l").value)/1000, B_uT:+$("B_uT").value, theta_deg:+$("theta_deg").value,
       mech:$("mech").value, Te_K:+$("Te_K").value, f_close:Math.pow(10,+$("f_close_l").value), m_t:+$("m_t").value, A_s:+$("A_s").value,
-      d_sh:+$("d_sh").value/100, f_rx:+$("f_rx").value, rbw:+$("rbw_k").value*1e3, aperture:$("aperture").value, SE_dB:+$("SE_dB").value,
+      d_sh:+$("d_sh").value/100, f_rx:BANDS[b][0], rbw:+$("rbw_k").value*1e3, aperture:apFor(b), SE_dB:+$("SE_dB").value,
       noise_env:$("noise_env").value, log10_eta:+$("log10_eta").value, chi:+$("chi").value, log10_kappa:+$("log10_kappa").value,
       r_km:Math.pow(10,+$("r_l").value)
     };
   }
+  const sup = (e) => { const m={"-":"⁻","0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹",".":"·"}; return String(e).split("").map(ch=>m[ch]||ch).join(""); };
+  const tenPow = (l) => (Math.abs(l - Math.round(l)) < 1e-9) ? "10"+sup(Math.round(l)) : fe(Math.pow(10,l));
   function labels(p, q){
-    $("oh").textContent=p.h_km+" km"; $("omach").textContent=p.mach.toFixed(1)+" (U="+(q.U_ms/1e3).toFixed(2)+" km/s)";
-    $("one").textContent="1e"+p.log10_ne.toFixed(1); $("onu").textContent=p.nu_scale.toFixed(2)+" → "+fe(q.nu_s)+" s⁻¹";
-    $("oS").textContent="1e"+p.log10_S.toFixed(1)+" s⁻¹"; $("odl").textContent=(p.delta_m*1000).toFixed(2)+" mm";
-    $("oB").textContent=p.B_uT; $("oth").textContent=p.theta_deg+"°"; $("oTe").textContent=p.Te_K;
-    $("ofc").textContent=fe(p.f_close); $("omt").textContent=p.m_t.toFixed(2); $("oAs").textContent=p.A_s.toFixed(1);
+    $("or").textContent=p.r_km.toFixed(p.r_km<10?2:0)+" km";
+    $("one").textContent=tenPow(p.log10_ne)+" per m³";
+    const ev=Math.pow(10,p.log10_eta); $("oeta").textContent=tenPow(p.log10_eta)+(Math.abs(p.log10_eta-Math.round(p.log10_eta))<1e-9 && p.log10_eta>=-4 ? " = "+(+ev.toPrecision(3)) : "");
+    $("oh").textContent=p.h_km+" km"; $("omach").textContent=p.mach.toFixed(1)+" ("+(q.U_ms/1e3).toFixed(2)+" km/s)";
+    $("onu").textContent="×"+p.nu_scale.toFixed(2)+" → "+fe(q.nu_s)+" /s";
+    $("oS").textContent="1e"+p.log10_S.toFixed(1)+" /s"; $("odl").textContent=(p.delta_m*1000).toFixed(2)+" mm";
+    $("oB").textContent=p.B_uT+" µT"; $("oth").textContent=p.theta_deg+"°"; $("oTe").textContent=p.Te_K+" K";
+    $("ofc").textContent=fe(p.f_close); $("omt").textContent=p.m_t.toFixed(2); $("oAs").textContent=p.A_s.toFixed(1)+" m²";
     $("odsh").textContent=(p.d_sh*100).toFixed(1)+" cm"; $("orbw").textContent=(p.rbw/1e3).toFixed(1)+" kHz"; $("oSE").textContent=p.SE_dB+" dB";
-    $("or").textContent=p.r_km.toFixed(p.r_km<10?2:0)+" km"; $("oeta").textContent=fe(Math.pow(10,p.log10_eta));
     $("ochi").textContent=p.chi.toFixed(2); $("okap").textContent=fe(Math.pow(10,p.log10_kappa));
   }
   function meters(p, q){
     const M = [
-      ["FACT f_p", fe(q.fp_Hz/1e9)+" GHz"], ["FACT ν", fe(q.nu_s)+" s⁻¹"], ["FACT σ", fe(q.sigma_Sm)+" S/m"],
-      ["FACT Δu", fe(q.du_ms)+" m/s"], ["FACT J (upper bd)", fe(q.J_Am2)+" A/m²"], ["I_src rms", fe(q.Isrc_A)+" A"],
-      ["f_c = S/2π", fe(q.fc_Hz)+" Hz"], ["fraction in RBW", fe(q.Fspec)], ["FACT sheath atten. (d)", fd(q.Ash_dB)+" dB"],
-      ["FACT 1−|Γ|²", fd(q.Tint_dB)+" dB"], ["floor, Hively RX", fd(q.Nhiv_dBm)+" dBm"], ["floor, conventional", fd(q.Nconv_dBm)+" dBm"],
-      ["HYP P_SLW", fd(q.Pslw_dBm)+" dBm"], ["HYP SNR_SLW", fd(q.SNR_slw_dB)+" dB"], ["η_th (SNR 0 dB)", fe(q.eta_th0)],
-      ["η_th (SNR 10 dB)", fe(q.eta_th10)], ["HYP P_SW proxy", fd(q.Psw_dBm)+" dBm"], ["(η√κ)_th SW", fe(q.etakap_th0_sw)],
-      ["HYP C_pk at r", fe(q.Cpk_T)+" V·s/m²"], ["HYP E_L,pk at r", fe(q.ELpk_Vm)+" V/m"], ["FACT-form P_TEM", fd(q.Ptem_dBm)+" dBm"],
-      ["FACT P_thermal", fd(q.Pth_dBm)+" dBm"], ["r_max (SNR 0, this η)", fe(q.rmax_km)+" km"], ["kr", fe(q.kr)]
+      ["Plasma frequency f_p (FACT)", fe(q.fp_Hz/1e9)+" GHz"], ["Collision rate ν (FACT)", fe(q.nu_s)+" /s"], ["Conductivity σ (FACT)", fe(q.sigma_Sm)+" S/m"],
+      ["Speed jump Δu (FACT)", fe(q.du_ms)+" m/s"], ["Current density J, upper limit (FACT)", fe(q.J_Am2)+" A/m²"], ["Flickering current, rms", fe(q.Isrc_A)+" A"],
+      ["Flicker corner f_c = S/2π", fe(q.fc_Hz)+" Hz"], ["Fraction of flicker in band", fe(q.Fspec)], ["Plasma loss, ordinary radio (FACT)", fd(q.Ash_dB)+" dB"],
+      ["Plasma edge transmission 1−|Γ|² (FACT)", fd(q.Tint_dB)+" dB"], ["Noise floor, shielded Hively receiver", fd(q.Nhiv_dBm)+" dBm"], ["Noise floor, ordinary receiver", fd(q.Nconv_dBm)+" dBm"],
+      ["Antenna collecting area A_rx", fe(q.Arx_m2)+" m²"],
+      ["SLW received power (HYP)", fd(q.Pslw_dBm)+" dBm"], ["SLW SNR (HYP)", fd(q.SNR_slw_dB)+" dB"], ["Smallest η for SNR 0 dB", fe(q.eta_th0)],
+      ["Smallest η for SNR 10 dB", fe(q.eta_th10)], ["Scalar-wave proxy power (HYP)", fd(q.Psw_dBm)+" dBm"], ["Smallest η√κ_C, scalar wave", fe(q.etakap_th0_sw)],
+      ["C field peak at receiver (HYP)", fe(q.Cpk_T)+" V·s/m²"], ["E_L peak at receiver (HYP)", fe(q.ELpk_Vm)+" V/m"], ["Ordinary radio power (FACT form)", fd(q.Ptem_dBm)+" dBm"],
+      ["Plasma glow power (FACT)", fd(q.Pth_dBm)+" dBm"], ["Max distance for SNR 0 at your η", fe(q.rmax_km)+" km"], ["Wavelengths to receiver ×2π (kr)", fe(q.kr)]
     ];
     $("meters").innerHTML = M.map(m => '<div><div class="lbl">'+m[0]+'</div><strong>'+m[1]+'</strong></div>').join("");
   }
   function verdict(p, q){
-    const v = $("verdict"); const warn = [];
-    if (p.r_km < p.h_km) warn.push("r < altitude: the receiver would have to be airborne.");
-    if (q.kr < 10) warn.push("kr < 10: the far-field assumption is weak.");
-    if (q.eta_th0 <= 1) { v.className = "verdict"; v.innerHTML = "<strong>HYP SLW detectable only if η &gt; "+fe(q.eta_th0)+"</strong> (SNR 0 dB; η &gt; "+fe(q.eta_th10)+" for 10 dB) at "+p.r_km.toFixed(0)+" km. At the chosen η = "+fe(Math.pow(10,p.log10_eta))+": SNR = "+fd(q.SNR_slw_dB)+" dB. "+warn.join(" "); }
-    else { v.className = "verdict no"; v.innerHTML = "<strong>Not detectable for any η ≤ 1</strong> at "+p.r_km.toFixed(0)+" km with these settings (η would need to be "+fe(q.eta_th0)+"). Even a sheath as SLW-efficient as Hively's own antenna falls "+fd(-10*Math.log10(1/(q.eta_th0*q.eta_th0)))+" dB short. "+warn.join(" "); }
+    const v = $("verdict"), warn = [];
+    if (p.r_km < p.h_km) warn.push("Distance is less than the altitude, so the receiver would have to be airborne.");
+    if (q.kr < 10) warn.push("Receiver is only a few wavelengths away, so the far-distance assumption is weak.");
+    const eta = Math.pow(10,p.log10_eta), rk = p.r_km.toFixed(p.r_km<10?1:0);
+    const snrDef = ' <span class="fine">(SNR, signal-to-noise ratio: how far the signal sits above the receiver\'s own noise. 0 dB means equal; below 0 dB it is buried.)</span>';
+    if (q.eta_th0 <= 1) {
+      const heard = q.SNR_slw_dB >= 0;
+      v.className = "hero-verdict";
+      $("vBig").innerHTML = 'Detectable? <span class="'+(heard?"yes":"nope")+'">'+(heard?"Yes, at your η":"Not at your η")+'</span>, only if η &gt; '+fe(q.eta_th0)+' · SNR '+fd(q.SNR_slw_dB)+' dB';
+      $("vSub").innerHTML = 'At '+rk+' km the SLW would reach the noise floor if η is above '+fe(q.eta_th0)+' (above '+fe(q.eta_th10)+' for a clear 10 dB signal). With η = '+fe(eta)+' the SNR is '+fd(q.SNR_slw_dB)+' dB.'+snrDef;
+    } else {
+      v.className = "hero-verdict no";
+      $("vBig").innerHTML = 'Detectable? <span class="nope">No</span>, not for any η ≤ 1 · SNR '+fd(q.SNR_slw_dB)+' dB';
+      $("vSub").innerHTML = 'At '+rk+' km, η would have to be '+fe(q.eta_th0)+', which is impossible (η is a fraction, at most 1). Even a plasma as efficient as Hively\'s own antenna (η = 1) falls '+fd(20*Math.log10(q.eta_th0))+' dB short.'+snrDef;
+    }
+    $("vFine").textContent = "Hypothesis (HYP) estimate, not flight data · altitude "+p.h_km+" km, Mach "+p.mach+" · other settings in Full controls. "+warn.join(" ");
   }
   function table(p){
-    let h = "<tr><th>n<sub>e</sub> (m⁻³)</th><th>f<sub>rx</sub></th><th>η<sub>th</sub> @10 km</th><th>η<sub>th</sub> @100 km</th><th>η<sub>th</sub> @1000 km</th><th>P<sub>SLW</sub>(η=1) @100 km</th><th>TEM SNR @100 km</th><th>thermal SNR @100 km</th></tr>";
-    [16,18,20].forEach(ne => FR.forEach(([f,fl]) => {
-      const r = [10,100,1000].map(rk => X.model(Object.assign({}, p, {log10_ne:ne, f_rx:f, r_km:rk})));
+    let h = "<tr><th>Plasma density n<sub>e</sub> (per m³)</th><th>Band</th><th>Smallest η @10 km</th><th>Smallest η @100 km</th><th>Smallest η @1000 km</th><th>SLW power if η=1 @100 km</th><th>Ordinary radio SNR @100 km</th><th>Plasma glow SNR @100 km</th></tr>";
+    [16,18,20].forEach(ne => ORDER.forEach(bk => {
+      const r = [10,100,1000].map(rk => X.model(Object.assign({}, p, {log10_ne:ne, f_rx:BANDS[bk][0], aperture:apFor(bk), r_km:rk})));
       const c = (e) => '<td class="'+(e<=1?"ok":"no")+'">'+fe(e)+'</td>';
-      h += "<tr><td>1e"+ne+"</td><td>"+fl+"</td>"+c(r[0].eta_th0)+c(r[1].eta_th0)+c(r[2].eta_th0)+"<td>"+fd(r[1].Pslw1_dBm)+" dBm</td><td>"+fd(r[1].SNR_tem_dB)+" dB</td><td>"+fd(r[1].SNR_th_dB)+" dB</td></tr>";
+      h += "<tr><td>10"+sup(ne)+"</td><td>"+BANDS[bk][2]+" ("+(apFor(bk)==="recip"?"λ²/4π":"hub")+")</td>"+c(r[0].eta_th0)+c(r[1].eta_th0)+c(r[2].eta_th0)+"<td>"+fd(r[1].Pslw1_dBm)+" dBm</td><td>"+fd(r[1].SNR_tem_dB)+" dB</td><td>"+fd(r[1].SNR_th_dB)+" dB</td></tr>";
     }));
     $("resTable").innerHTML = h;
   }
+  // ---- charts (DPR-scaled, drawn only while their tab is open) ----
+  function prep(id){
+    const c=$(id), dpr=Math.min(window.devicePixelRatio||1,3), W=Math.max(280,c.clientWidth), H=c.clientHeight||260;
+    c.width=Math.round(W*dpr); c.height=Math.round(H*dpr); const ctx=c.getContext("2d"); ctx.setTransform(dpr,0,0,dpr,0,0); return [ctx,W,H];
+  }
   function axes(ctx, W, H, L, xlab, ylab, xmin, xmax, ymin, ymax, ylog){
-    ctx.fillStyle="#0a101c"; ctx.fillRect(0,0,W,H); ctx.strokeStyle="#1c2a40"; ctx.fillStyle="#9aabbf"; ctx.font="12px IBM Plex Mono"; ctx.lineWidth=1;
-    for (let d=Math.ceil(xmin); d<=xmax; d++){ const x=L.x(d); ctx.beginPath(); ctx.moveTo(x,L.t); ctx.lineTo(x,L.b); ctx.stroke(); ctx.fillText(Math.pow(10,d)+"",x-8,H-8); }
+    ctx.fillStyle="#0a101c"; ctx.fillRect(0,0,W,H); ctx.strokeStyle="#1c2a40"; ctx.fillStyle="#9aabbf"; ctx.font="11px IBM Plex Mono, monospace"; ctx.lineWidth=1;
+    for (let d=Math.ceil(xmin); d<=xmax; d++){ const x=L.x(d); ctx.beginPath(); ctx.moveTo(x,L.t); ctx.lineTo(x,L.b); ctx.stroke(); const t=Math.pow(10,d)+""; ctx.fillText(t,Math.min(x-8,W-6-7*t.length),H-8); }
     const step = ylog ? 2 : 50;
     for (let y=Math.ceil(ymin/step)*step; y<=ymax; y+=step){ const yy=L.y(y); ctx.beginPath(); ctx.moveTo(L.l,yy); ctx.lineTo(L.r,yy); ctx.stroke(); ctx.fillText(ylog?("1e"+y):(y+""),4,yy+4); }
-    ctx.fillText(xlab, L.r-120, H-8); ctx.fillText(ylab, L.l+6, 14);
+    ctx.fillText(xlab, (L.l+L.r)/2-40, H-8); ctx.fillText(ylab, L.l+6, 14);
   }
   function line(ctx, L, pts, color, w, dash){
     ctx.beginPath(); let s=false;
     pts.forEach(([x,y]) => { if(!isFinite(y)) return; const X_=L.x(x), Y_=L.y(Math.max(Math.min(y,L.ymax),L.ymin)); if(!s){ctx.moveTo(X_,Y_);s=true;} else ctx.lineTo(X_,Y_); });
     ctx.strokeStyle=color; ctx.lineWidth=w; ctx.setLineDash(dash||[]); ctx.stroke(); ctx.setLineDash([]);
   }
-  function mkL(W,H,xmin,xmax,ymin,ymax){ const L={l:56,r:W-14,t:22,b:H-24,ymin,ymax}; L.x=(v)=>L.l+(v-xmin)/(xmax-xmin)*(L.r-L.l); L.y=(v)=>L.b-(v-ymin)/(ymax-ymin)*(L.b-L.t); return L; }
+  function mkL(W,H,xmin,xmax,ymin,ymax){ const L={l:50,r:W-12,t:22,b:H-24,ymin,ymax}; L.x=(v)=>L.l+(v-xmin)/(xmax-xmin)*(L.r-L.l); L.y=(v)=>L.b-(v-ymin)/(ymax-ymin)*(L.b-L.t); return L; }
   function plotRange(p){
-    const c=$("pRange"), ctx=c.getContext("2d"), W=c.width, H=c.height;
+    const [ctx,W,H]=prep("pRange");
     const lr=[]; for(let i=0;i<=90;i++) lr.push(i/30);
     const ev=(o)=>lr.map(x=>X.model(Object.assign({},p,o,{r_km:Math.pow(10,x)})));
-    const a=ev({}), b=ev({log10_eta:0}), sw=ev({}), q0=a[0];
+    const a=ev({}), b=ev({log10_eta:0}), q0=a[0];
     const all=[].concat(a.map(q=>q.Pslw_dBm), b.map(q=>q.Pslw_dBm), a.map(q=>q.Ptem_dBm), a.map(q=>q.Pth_dBm), [q0.Nhiv_dBm, q0.Nconv_dBm]).filter(isFinite);
     const ymax=Math.min(40, Math.ceil((Math.max(...all)+10)/50)*50), ymin=Math.max(ymax-300, Math.floor((Math.min(...all)-10)/50)*50);
-    const L=mkL(W,H,0,3,ymin,ymax); axes(ctx,W,H,L,"range r (km)","received power (dBm in RBW)",0,3,ymin,ymax,false);
+    const L=mkL(W,H,0,3,ymin,ymax); axes(ctx,W,H,L,"distance (km)","received power (dBm)",0,3,ymin,ymax,false);
     line(ctx,L,lr.map((x,i)=>[x,b[i].Pslw_dBm]),"#3db8a0",1,[]);
     line(ctx,L,lr.map((x,i)=>[x,a[i].Pslw_dBm]),"#3db8a0",2.5,[]);
-    line(ctx,L,lr.map((x,i)=>[x,sw[i].Psw_dBm]),"#b39ddb",1.8,[6,4]);
+    line(ctx,L,lr.map((x,i)=>[x,a[i].Psw_dBm]),"#b39ddb",1.8,[6,4]);
     line(ctx,L,lr.map((x,i)=>[x,a[i].Ptem_dBm]),"#e0a060",1.8,[]);
     line(ctx,L,lr.map((x,i)=>[x,a[i].Pth_dBm]),"#e07060",1.5,[]);
     line(ctx,L,lr.map(x=>[x,q0.Nhiv_dBm]),"#ffffff",1.5,[]);
@@ -317,19 +487,41 @@ figcaption{color:var(--muted);font-size:.86rem}
     const xr=Math.log10(p.r_km); ctx.strokeStyle="#7ec8ff"; ctx.setLineDash([2,3]); ctx.beginPath(); ctx.moveTo(L.x(xr),L.t); ctx.lineTo(L.x(xr),L.b); ctx.stroke(); ctx.setLineDash([]);
   }
   function plotEta(p){
-    const c=$("pEta"), ctx=c.getContext("2d"), W=c.width, H=c.height;
+    const [ctx,W,H]=prep("pEta");
     const lr=[]; for(let i=0;i<=60;i++) lr.push(i/20);
     const cols=["#7ec8ff","#3db8a0","#e0a060","#e07060"];
-    const series=FR.map(([f])=>lr.map(x=>Math.log10(X.model(Object.assign({},p,{f_rx:f,r_km:Math.pow(10,x)})).eta_th0)));
+    const series=ORDER.map(bk=>lr.map(x=>Math.log10(X.model(Object.assign({},p,{f_rx:BANDS[bk][0],aperture:apFor(bk),r_km:Math.pow(10,x)})).eta_th0)));
     const flat=[].concat(...series).filter(isFinite);
     const ymin=Math.floor(Math.min(-2,...flat)), ymax=Math.ceil(Math.max(2,...flat));
-    const L=mkL(W,H,0,3,ymin,ymax); axes(ctx,W,H,L,"range r (km)","log10 η_th (SNR 0 dB)",0,3,ymin,ymax,true);
-    series.forEach((s,k)=>{ line(ctx,L,lr.map((x,i)=>[x,s[i]]),cols[k],2,[]); ctx.fillStyle=cols[k]; ctx.fillText(FR[k][1],L.l+10,L.t+16+14*k); });
+    const L=mkL(W,H,0,3,ymin,ymax); axes(ctx,W,H,L,"distance (km)","smallest η needed (SNR 0 dB)",0,3,ymin,ymax,true);
+    series.forEach((s,k)=>{ line(ctx,L,lr.map((x,i)=>[x,s[i]]),cols[k],2,[]); ctx.fillStyle=cols[k]; ctx.fillText(BANDS[ORDER[k]][2],L.l+10,L.t+16+14*k); });
     line(ctx,L,lr.map(x=>[x,0]),"#ffffff",1.5,[4,3]); ctx.fillStyle="#fff"; ctx.fillText("η = 1",L.l+6,L.y(0)-4);
   }
-  function update(){ const p=params(), q=X.model(p); labels(p,q); meters(p,q); verdict(p,q); table(p); plotRange(p); plotEta(p); }
+  function update(){
+    const p=params(), q=X.model(p); labels(p,q); verdict(p,q);
+    if (!$("p-full").hidden) meters(p,q);
+    if (!$("p-charts").hidden) { table(p); plotRange(p); plotEta(p); }
+  }
+  // ---- tabs: one open at a time, deep-linkable via #how, #charts, ... ----
+  const tabs = Array.from(document.querySelectorAll(".tabs button"));
+  function openPanel(id, scroll){
+    tabs.forEach(b => { const on = b.getAttribute("aria-controls")===id && b.getAttribute("aria-expanded")!=="true"; b.setAttribute("aria-expanded", on?"true":"false"); $(b.getAttribute("aria-controls")).hidden = !on; });
+    const open = tabs.find(b => b.getAttribute("aria-expanded")==="true");
+    history.replaceState(null, "", open ? "#"+open.getAttribute("aria-controls").slice(2) : location.pathname + location.search);
+    update();
+    if (open && scroll) $(id).scrollIntoView({behavior:"smooth", block:"start"});
+  }
+  tabs.forEach(b => b.addEventListener("click", () => openPanel(b.getAttribute("aria-controls"), false)));
+  document.querySelectorAll("[data-open]").forEach(a => a.addEventListener("click", (e) => { e.preventDefault(); const id=a.getAttribute("data-open"); if ($(id).hidden) openPanel(id, true); else $(id).scrollIntoView({behavior:"smooth"}); }));
+  $("reset").addEventListener("click", () => {
+    document.querySelectorAll("input[type=range]").forEach(el => el.value = el.defaultValue);
+    document.querySelectorAll("select").forEach(el => Array.from(el.options).forEach(o => o.selected = o.defaultSelected));
+    update();
+  });
   document.querySelectorAll("input,select").forEach(el => el.addEventListener("input", update));
-  update();
+  let rt; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(update, 150); });
+  const h = location.hash.slice(1); if (h && $("p-"+h)) openPanel("p-"+h, true); else update();
+  window.addEventListener("hashchange", () => { const k = location.hash.slice(1); if (k && $("p-"+k) && $("p-"+k).hidden) openPanel("p-"+k, true); });
 })();
 </script>
 </body>
