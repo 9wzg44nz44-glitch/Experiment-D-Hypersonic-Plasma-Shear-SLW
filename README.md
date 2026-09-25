@@ -18,6 +18,7 @@ When published via GitHub Pages:
 - `slw-detectability.html` + `js/slw-detect.js` — **first quantitative SLW/SW detectability estimate** (`expt-d-detect-v0.1`). FACT sheath physics (RAM-C II, Drude blackout, ITU-R P.372 noise, TinySA Ultra floor) + HYP Hively EED (Hively & Loebl 2019 Eq. B5/37, US 9,306,527 Eq. 15, ledger □C). Every unknown coupling (η, χ, κ_C) is a swept slider. Cloud twin pending sync.
 - **v0.2 (`expt-d-detect-v0.2`, UI v0.2.0): new "Sheath modulation" tab** (`js/slw-modulation.js`). FACT flicker bands of the sheath (Mack second mode f₂ = C·U/(2δ), Parziale et al. 2015; wake oscillation f = St·U/D, Schmidt & Shepherd 2015 et al.; NO⁺ recombination decay, Torr et al. 1977; Kossyi et al. 1992) feed the unchanged v0.1 HYP SLW source; detection via Eckart/radiometer averaging (Rudnick 1961; Dicke 1946); FACT conventional AM/PM fingerprint on carriers crossing the sheath. JS vs Python `sim/expt_d_mod.py`: PASS 205633 / FAIL 0 (rel tol 1e-9). v0.1 formulas unchanged.
 - **v0.3 (`expt-d-detect-v0.3`, UI v0.3.0): new "Receiver chain" tab.** Target stays the SLW/SW (HYP) on the Hively-style receive sphere inside a Faraday cage; TEM is background (leak through the cage SE + receiver thermal noise). FACT Friis cascade (Friis 1944) of cable + up to 3 LNAs + instrument presets (TinySA Ultra with/without LNA, Airspy HF+ Discovery, Keysight N9040B DANL table, ideal). Default (TinySA alone) reproduces v0.2 bit-exactly (308,448 values). JS vs Python: PASS 602,242 / FAIL 0 (rel tol 1e-9). Report `rxchain/REPORT.md`, gear list `rxchain/SHOPPING_LIST.md`.
+- **UI v0.3.1 (physics unchanged, `expt-d-detect-v0.3`): "Candidate detectors" section** in the Receiver chain tab (toggle 8): sphere + LNA chain (baseline), Rydberg vapor cell, hydrogen 2S quench detector — text only, sourced. Worked numbers (2S quench rates from Lamb & Retherford 1950, β–e level crossing, E-field equivalents) recomputed and page-checked by `sim/detectors_check.py` (32/32). Literature check: `detectors/LIT_CHECK.md`.
 - `plots/` — Python reference figures (sim/run_analysis.py; v0.2: sim/run_mod_analysis.py → figM*.png, modulation_spectrum.png, modulation_front_820px.png).
 - `sim/` — Python reference model `expt_d_model.py`, the fixed cross-check grid `grid.json`, `dump_js_outputs.mjs` + `compare_outputs.mjs` (JS vs Python: PASS 105985 / FAIL 0 at rel tol 1e-9), and results tables.
 - `wolfram/` — Mathematica twin `ExptDDetect.wl` (+ `_RunGrid.wl`, `_Publish.wl`; v0.2 adds the modulation mirror and `ExptDMod_RunGrid.wl`). Not yet executed; JS-vs-WL compare owed.
@@ -38,6 +39,8 @@ wolframscript -file ../wolfram/ExptDDetect_RunGrid.wl && node compare_outputs.mj
 python3 run_mod_analysis.py
 node dump_js_mod.mjs && python3 dump_py_mod.py && node compare_outputs.mjs js_mod_outputs.json py_mod_outputs.json 1e-9
 wolframscript -file ../wolfram/ExptDMod_RunGrid.wl && node compare_outputs.mjs js_mod_outputs.json wl_mod_outputs.json 1e-9   # owed
+# UI v0.3.1 candidate detectors (numbers quoted on the page)
+python3 detectors_check.py ../slw-detectability.html
 # v0.3 receiver chain
 python3 make_grid_rx.py && node dump_js_rx.mjs && python3 dump_py_rx.py
 node compare_outputs.mjs js_rx_outputs.json py_rx_outputs.json 1e-9 && node compare_outputs.mjs js_rxmod_outputs.json py_rxmod_outputs.json 1e-9

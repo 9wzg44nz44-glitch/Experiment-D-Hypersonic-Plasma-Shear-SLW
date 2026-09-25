@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="format-detection" content="telephone=no">
 <meta name="description" content="Experiment D — SLW/SW detectability estimate for a hypersonic plasma sheath: FACT sheath physics (RAM-C II) + HYP Hively EED, parametric sweeps over unknown couplings; v0.2 adds the sheath modulation (flicker) study; v0.3 adds the receiver chain (LNAs, instruments, Friis cascade). Not flight data.">
-<title>Experiment D · Could a receiver hear it? (physics expt-d-detect-v0.3 · UI v0.3.0)</title>
+<title>Experiment D · Could a receiver hear it? (physics expt-d-detect-v0.3 · UI v0.3.1)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -68,6 +68,7 @@ table.res{width:100%;border-collapse:collapse;font-size:.84rem;margin:10px 0}
 table.res th,table.res td{border:1px solid var(--line);padding:5px 7px;text-align:right;font-family:var(--font-m)}
 table.res th{background:#0a101c;color:var(--muted);font-family:var(--font-b);text-align:center}
 table.res td.l{text-align:left;font-family:var(--font-b)}
+table.cand td{vertical-align:top;font-size:.8rem;line-height:1.4}
 td.ok{color:#7fe0a8} td.no{color:#e07060}
 .verdict{border:2px solid var(--accent);border-radius:12px;padding:12px 14px;background:rgba(61,184,160,.08);margin:12px 0}
 .verdict.no{border-color:var(--hot);background:rgba(224,112,96,.08)}
@@ -501,6 +502,74 @@ details.sub[open]{padding-bottom:12px}
 <li><b>Cloud twin pending sync (<span class="verCloudX"></span>).</b> The Wolfram twin (<a href="wolfram/ExptDDetect.wl">ExptDDetect.wl</a>) mirrors the v0.3 receiver chain but has not been run. The JS-vs-Wolfram compare for v0.3 is owed.</li>
 </ul>
 </details>
+<details class="sub" id="candDet"><summary>8 · Candidate detectors: sphere + LNA chain, Rydberg vapor cell, hydrogen 2S quench (new in UI v0.3.1)</summary>
+<p style="margin-top:6px">Three detector ideas, compared on the same questions. <b>No new physics goes into the engine here.</b> This is a text comparison built from published numbers. The few numbers we worked out ourselves use only the cited formulas and are recomputed in <a href="sim/detectors_check.py">sim/detectors_check.py</a>, which also checks every number below against this page. The full literature check, with every value and source, is in <a href="detectors/LIT_CHECK.md">detectors/LIT_CHECK.md</a>.</p>
+<p class="legend"><b>Vehicle bands:</b> 241 kHz (the Mack band at the baseline) and 0.1–3 kHz (wake). <b>E-field noise per √Hz:</b> the weakest field (volts per metre) a detector can see in a 1 Hz bandwidth; smaller is better. For the sphere chain we convert its noise to an equivalent field with the page's own ideal aperture λ²/4π <span class="tag asm">ASSUMPTION</span>. A real small sphere is not an ideal matched antenna, so the sphere's figures are optimistic.</p>
+<div style="overflow-x:auto"><table class="res cand">
+<tr><th>Detector</th><th>What it senses</th><th>Frequency match (241 kHz; 0.1–3 kHz)</th><th>Sensitivity vs the sphere chain</th><th>SLW vs TEM</th><th>Practicality</th><th>Verdict</th></tr>
+<tr><td class="l"><b>Sphere + LNA chain</b> (current baseline, this tab)</td><td class="l">Voltage at the receive sphere's terminals. It sees the SLW only under the <span class="tag hyp">HYP</span> that the sphere converts SLW to a voltage.</td><td class="l">241 kHz: yes (ZFL-500LN+ from 100 kHz; Airspy HF+ from 0.5 kHz). Wake band: the Airspy covers it, but the recommended LNA does not; it would need an audio preamp (not specified here).</td><td class="l">Baseline. At 241 kHz the chain's own noise is ≈5 pV/m per √Hz (NF 2.9 dB). The floor inside the cage is set by outside noise leaking through: ≈23 pV/m per √Hz (quiet rural, SE 55 dB).</td><td class="l">Only through the Faraday cage: TEM is cut by the SE, and the SLW is assumed to pass the wall <span class="tag hyp">HYP</span>.</td><td class="l">Cheap, off the shelf (see the shopping list).</td><td class="l"><b>Keep as the baseline.</b></td></tr>
+<tr><td class="l"><b>Rydberg-atom vapor cell</b> (Rb or Cs, read out by laser EIT)</td><td class="l">The E-field at the atoms, including its <b>direction</b> (polarization) <span class="tag">FACT</span>.</td><td class="l">Best at GHz. Low frequencies need tricks: the cell wall screens slow fields, so published kHz results use electrodes inside the cell or special sapphire cells <span class="tag">FACT</span>.</td><td class="l">Published: 55 nV/cm per √Hz (5.5 µV/m) at GHz; 0.95, 2.2 and 5.7 µV/cm per √Hz at 100, 10 and 1 kHz (field applied by internal electrodes); 0.34 (mV/m) per √Hz below 1 kHz <span class="tag">FACT</span>. Versus the sphere chain (our arithmetic): the best 100 kHz figure is 146 dB above the chain's own noise at 241 kHz, and 132 dB above the leaked floor. Even unshielded outdoors it is 77 dB above the quiet-rural radio noise (≈13 nV/m per √Hz). At 1296 MHz, 55 nV/cm per √Hz is 49 dB above the LNA chain (≈20 nV/m per √Hz).</td><td class="l"><b>Can measure the field's direction</b>: 0.5° polarization resolution has been demonstrated <span class="tag">FACT</span>. That allows a test of Hively's longitudinal SLW (E along the propagation direction, <span class="tag hyp">HYP</span>) against transverse TEM (E across it, <span class="tag">FACT</span>). A plain glass cell has no metal, so it can sit inside the cage, with the lasers brought in by fibre.</td><td class="l">Lab-grade: two stabilised lasers (780 + 480 nm for Rb), locking electronics, a heated cell. Commercial systems exist, but specs were not verified here.</td><td class="l"><b>Not a replacement for the sphere at vehicle bands.</b> Best as an <b>SLW-vs-TEM direction test for Experiments A/B</b>, where a nearby launcher gives strong GHz fields.</td></tr>
+<tr><td class="l"><b>Hydrogen 2S “tickled de-excitation”</b> (Stark / RF quench), from the hub's 1S–2S pages</td><td class="l">An E-field mixes the long-lived 2S state into the 2P state. 2P decays in 1.60 ns and emits one Lyman-α photon (121.6 nm) <span class="tag">FACT</span>.</td><td class="l">Resonant only near <b>1057.8 MHz</b> (width 99.7 MHz) at zero magnetic field. At 241 kHz and in the wake band it sees only the flat low-frequency tail, 23.4 dB below resonance, with <b>no frequency selectivity</b> from DC up to tens of MHz. The level crossing (below) does not make it a tuned kHz detector.</td><td class="l">Per atom, for a 1 µV/m field (our arithmetic from Lamb &amp; Retherford 1950): 3.1×10⁻¹¹ per second on resonance, and 1.4×10⁻¹³ per second at 241 kHz. One quench per second therefore needs ≈3×10¹⁰ or ≈7×10¹² atoms in 2S, respectively. For scale, the largest published trapped 2S cloud was ≥5×10⁷ atoms, with ≈2×10⁻⁶ photon-detection efficiency <span class="tag">FACT</span>.</td><td class="l">It is an E-field detector: ordinary TEM at the same frequency also quenches it <span class="tag">FACT</span>. So separating SLW from TEM still relies on the Faraday cage (SLW assumed to pass, <span class="tag hyp">HYP</span>). A pure SW (E = B = 0, <span class="tag hyp">HYP</span>) would not couple through the E-field at all, only possibly through potentials (untested <span class="tag hyp">HYP</span>).</td><td class="l">Hard: an atomic-hydrogen source, 243 nm two-photon excitation or electron bombardment, vacuum, and solar-blind Lyman-α detectors.</td><td class="l"><b>A clean signature</b>: one Lyman-α line, versus the broad two-photon continuum of natural decay. <b>Best as a controlled lab experiment near 1058 MHz. A long shot for the vehicle.</b></td></tr>
+</table></div>
+
+<h4>Hydrogen 2S: the numbers, step by step</h4>
+<ul class="tight">
+<li><b>Making 2S:</b> two photons at 243 nm, from a 972 nm laser frequency-doubled twice, excite 1S → 2S. The measured frequency is 2 466 061 413 187 035(10) Hz, for the hyperfine centroid (Parthey et al., PRL 107, 203001, 2011) <span class="tag">FACT</span>. There, 2S atoms are detected by quenching in a 10 V/cm field and counting the Lyman-α photons.</li>
+<li><b>Natural decay:</b> 2S lives <b>0.122 s</b>. It decays by emitting two photons at once (rate 8.2283 s⁻¹; Klarsfeld 1969). The two photon energies add up to 10.2 eV, so the light is a <em>continuum</em>, not a line <span class="tag">FACT</span>. <b>Forced decay:</b> 2S → 2P → 1S gives <em>one</em> Lyman-α line at 121.567 nm. The 2P lifetime is 1.60 ns (NIST: A = 6.2648×10⁸ s⁻¹), a natural width of 99.7 MHz <span class="tag">FACT</span>.</li>
+<li><b>Level spacings</b> (from NIST level energies): 2S₁/₂–2P₁/₂ = 1057.8 MHz (the Lamb shift), and 2S₁/₂–2P₃/₂ = 9911 MHz <span class="tag">FACT</span>.</li>
+<li><b>Quench-rate formula</b> (Lamb &amp; Retherford 1950, Eq. 25–27, from Bethe) <span class="tag">FACT</span>: 1/τ = |⟨e·r⟩|²·(eE₀/ħ)²·γ / [4((ω−ω₀)² + γ²/4)], with |⟨e·r⟩|² = 3a₀². On resonance this becomes 1/τ = 3(e a₀ E₀/ħ)²/γ. It scales as <b>E₀²</b>, and away from resonance it is suppressed by the Lorentzian factor. Symbols:
+<ul>
+<li>E₀ = peak field amplitude</li>
+<li>a₀ = Bohr radius</li>
+<li>e = electron charge; ħ = reduced Planck constant</li>
+<li>γ = 2P decay rate</li>
+<li>ω = field frequency; ω₀ = 2S–2P resonance frequency (angular)</li>
+</ul>
+<b>Checks:</b> Lamb &amp; Retherford's own example (3.4 mW/cm²) gives 1.26 µs, against their 1.25 µs. The static-field version (their Eq. 42) at 10 V/cm gives 3.6 µs, against the “few microseconds” reported for 10 V/cm quenching.</li>
+<li><b>1 µV/m, on resonance:</b> <b>3.1×10⁻¹¹ per second per atom</b> if 1 µV/m is the peak amplitude, or 6.2×10⁻¹¹ if it is the rms value. The rough ≈10⁻¹⁰ estimate corresponds to leaving out the factor ½ in the formula's rotating-wave form.</li>
+<li><b>1 µV/m at 241 kHz, zero magnetic field:</b> 1.4×10⁻¹³ per second, i.e. <b>23.4 dB</b> below resonance. This counts both rotating terms of the field (needed when the field frequency is far below resonance) and adds the 2P₃/₂ path, which contributes about 2%. Keeping only the single near-resonant term gives 26.5 dB, which is close to the rough 27 dB estimate.</li>
+<li><b>The magnetic level crossing:</b> Lamb &amp; Retherford (1950, §16) describe the 2S β (m<sub>J</sub> = −½) and 2P e (m<sub>J</sub> = +½) levels crossing at 540 G, using their early value of about 1000 MHz for the Lamb shift <span class="tag">FACT</span>. Recomputing with that value reproduces 542 G. With today's 1057.8 MHz it gives <b>573.5 G</b> (our calculation, hyperfine structure ignored <span class="tag asm">ASSUMPTION</span>). This agrees with the “≈575 G” quoted to us, although we did not find a primary source for that exact value.</li>
+<li><b>Can the crossing make 150–800 kHz resonant?</b> Only formally. Near the crossing the splitting changes by 1.82 MHz/G, so 150–800 kHz corresponds to sitting 0.08–0.44 G from the crossing. But the 2P level is 99.7 MHz wide, so the atoms respond the same way anywhere within about ±27 G. At the crossing, a 241 kHz field perpendicular to B (needed for the Δm<sub>J</sub> = ±1 step) quenches at 6.2×10⁻¹¹ per second for 1 µV/m, just like DC or any field up to tens of MHz: <b>broadband, not tuned</b>. Worse, an atom moving across B sees a motional field v×B: about 52 mV/m even for 100 µK atoms, and about 90 V/m at room temperature. That swamps 1 µV/m, which is exactly why Lamb &amp; Retherford used this crossing to empty the β state <span class="tag">FACT</span>.</li>
+</ul>
+
+<h4>Rydberg vapor cell: what has been shown</h4>
+<ul class="tight">
+<li><b>How it works:</b> two lasers make the vapor transparent (EIT) through a highly excited Rydberg state. A field shifts or splits that state (Autler–Townes splitting on resonance, Stark shift at low frequency), and the probe laser's transmission changes <span class="tag">FACT</span>.</li>
+<li><b>Superheterodyne (“superhet”) mode</b> (Jing et al., Nature Physics 16, 911, 2020): 55 nV cm⁻¹ Hz⁻¹ᐟ² sensitivity; smallest field detected 780 pV/cm; microwave band <span class="tag">FACT</span>.</li>
+<li><b>Direction (vector) measurement</b> (Sedlacek et al., PRL 111, 063001, 2013): arbitrary microwave polarization measured to 0.5° in a Rb vapor cell <span class="tag">FACT</span>.</li>
+<li><b>Low frequency:</b>
+<ul>
+<li>Jau &amp; Carter (Phys. Rev. Applied 13, 054034, 2020), sapphire cell: noise floor ≈0.34 (mV/m) per √Hz, 3-dB low cut-off ≈770 Hz <span class="tag">FACT</span>. Alkali atoms stuck to ordinary glass walls screen slow external fields; they estimate the cut-off at ≳10 kHz for typical glass cells.</li>
+<li>Lei &amp; Shi (arXiv:2405.04761, 2024; preprint, journal status not verified): 5.7, 2.2 and 0.95 µV/cm per √Hz at 1, 10 and 100 kHz, with the field applied by electrodes inside a Cs cell <span class="tag">FACT</span>.</li>
+</ul></li>
+</ul>
+
+<h4>Selection rules and longitudinal/scalar waves</h4>
+<ul class="tight">
+<li><span class="tag">FACT</span> A single photon (spin 1) cannot drive an exact J = 0 → J = 0 transition. In nuclei, such “E0” decays go by internal conversion instead (Kibédi, Garnsworthy &amp; Wood, Prog. Part. Nucl. Phys. 123, 103930, 2022). Hydrogen 1S → 2S (S to S, same parity) is forbidden for one E1 photon, which is why the laboratory drives it with two 243 nm photons.</li>
+<li><span class="tag hyp">HYP</span> (our inference, not from the sources): a helicity-0, longitudinal/scalar quantum, if one existed, would carry no angular momentum. It could therefore in principle drive a monopole S → S step. The monopole radial overlap ⟨1s|r²|2s⟩ is not zero: 2.98 a₀² in magnitude (our arithmetic).</li>
+<li><b>What the sources say:</b>
+<ul>
+<li>Hively's US 9,306,527 states that the SLW apparatus “may facilitate a 1S to 2S atomic transition (mS to nS transition in general)”. It also says that frequencies above 1 THz “may correspond, for example, to atomic transitions from a 1S to a 2S orbital, which are forbidden by quantum mechanics on the basis of classical electrodynamics”. This is a claim, with no mechanism, selection-rule argument or data.</li>
+<li>Monstein &amp; Wesley (EPL 2002), Hively &amp; Loebl (2019) and Hively &amp; Land (2021) do not discuss atomic transitions (text search).</li>
+<li>Chiao et al. (PRA 107, 042209, 2023) use the S→S rule for a <em>scalar-potential</em> (Aharonov–Bohm) effect inside a Faraday shell. That is a different mechanism, disputed by Gao (PRA 111, 066203, 2025).</li>
+</ul></li>
+</ul>
+<p class="legend"><b>Sources:</b>
+Parthey et al. 2011, doi:10.1103/PhysRevLett.107.203001 ·
+Klarsfeld, Phys. Lett. 30A, 382 (1969) ·
+NIST ASD H I (Kramida et al., doi:10.18434/T4W30F) ·
+Lamb &amp; Retherford, Phys. Rev. 79, 549 (1950), doi:10.1103/PhysRev.79.549 ·
+Landhuis et al., arXiv:physics/0210019 ·
+Jing et al. 2020, doi:10.1038/s41567-020-0918-5 ·
+Sedlacek et al. 2013, doi:10.1103/PhysRevLett.111.063001 ·
+Jau &amp; Carter 2020, doi:10.1103/PhysRevApplied.13.054034 ·
+Lei &amp; Shi, arXiv:2405.04761 ·
+Kibédi et al. 2022, doi:10.1016/j.ppnp.2021.103930 ·
+Hively US 9,306,527 B1 ·
+Chiao et al. 2023, doi:10.1103/PhysRevA.107.042209.</p>
+</details>
+
 </div>
 </section>
 
@@ -719,7 +788,7 @@ details.sub[open]{padding-bottom:12px}
 (function(){
   "use strict";
   const X = window.ExptDDetect, $ = (id) => document.getElementById(id);
-  const UI = "UI v0.3.0";
+  const UI = "UI v0.3.1";
   const XM = window.ExptDMod;
   const PHYS = XM.VERSION; // physics version string (v0.3: receiver chain added)
   $("verTop").textContent = PHYS; $("verLine").textContent = UI + " · physics " + PHYS;
