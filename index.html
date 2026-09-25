@@ -79,11 +79,11 @@ footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);color:v
 <div class="card">
 <p>At Mach 5–20 in the upper atmosphere / lower ionosphere, shock heating ionizes air. The vehicle is wrapped in a sheath of free electrons (often n<sub>e</sub> ~ 10<sup>16</sup>–10<sup>20</sup> m⁻³) that already blackouts ordinary radio. The sheath fluctuates with attitude, altitude, ablation, and the geomagnetic field.</p>
 <p><span class="tag">First-class</span> Hypersonic flow is <strong>high-shear flow</strong>: extreme velocity gradients in the boundary layer, shock-slip surfaces, wake shear layers, and MHD-forced sheets. Shear steepens ∇n<sub>e</sub> and ∇φ, drives thin <b>v</b>×<b>B</b> electric sheets and Hall charge separation, and imprints <strong>bursty, attitude-linked modulation</strong> on any longitudinal / scalar channel. Gradient strength scales with shear rate — higher shear → stronger predicted SLW / SW drive than a uniform sheath of the same average n<sub>e</sub>.</p>
-<p class="eq">Hively MCE sketch (educational):
+<p class="eq">Hively EED sketch (educational · HYP; SI ledger form):
 gradient-driven current  J ∝ ∇ρ  (or ∇φ)
-→ dynamical scalar  C = ∇·A + ∂tφ
-→ longitudinal E  →  SLW channel
-SW limit (toy): E→0 (Ohmic α forced off)
+→ dynamical scalar  C = ∇·A + c⁻² ∂tΦ ,   □C = −μ₀ (∂tρ + ∇·J)
+→ longitudinal E  →  SLW channel  (SLW flux falls as 1/r², Hively &amp; Loebl 2019)
+SW limit: E = B = 0, C ≠ 0 (Ohmic σE² term off)
 
 Predicted: SLW ignores classical skin-effect cutoff that kills TEM through the sheath.</p>
 </div>
@@ -143,8 +143,10 @@ Predicted: SLW ignores classical skin-effect cutoff that kills TEM through the s
   </div>
 </div>
 
+<div class="banner" id="detect-link"><strong>New · calibrated first estimate:</strong> <a href="slw-detectability.html">SLW / SW detectability simulator (expt-d-detect-v0.1)</a>. It uses FACT sheath physics from RAM-C II flight reports and Drude blackout, Hively EED exactly as printed (HYP), and parametric sweeps over every unknown coupling, all against the TinySA Ultra floor. Headline: on 433.92 / 1296 MHz Hively-style receivers the HYP SLW is <strong>not detectable for any η ≤ 1</strong> at 100 km. Only a large resonant ≈1 MHz SLW antenna reaches η<sub>th</sub> ≈ 0.025 (n<sub>e</sub> = 10¹⁸ m⁻³), with ±2–3 decades of FACT-side uncertainty. Cloud twin pending sync (expt-d-detect-v0.1).</div>
+
 <h2 id="controls">Toy controls</h2>
-<p>Illustrative scaling only. Shear rate boosts gradient drive and burst modulation. Numbers are not calibrated flight SNR.</p>
+<p>Illustrative scaling only. Shear rate boosts gradient drive and burst modulation. Numbers are <strong>not</strong> calibrated flight SNR. For calibrated numbers, use the <a href="slw-detectability.html">detectability simulator</a>. There, J scales with Δu = S·δ (capped at flight speed), so shear helps only at fixed layer thickness.</p>
 <div class="controls">
   <label>Altitude <output id="oAlt"></output><input id="alt" type="range" min="30" max="120" step="1" value="70"></label>
   <label>Mach <output id="oMach"></output><input id="mach" type="range" min="5" max="20" step="0.1" value="10"></label>
@@ -234,6 +236,8 @@ Correlate bursts with Mach / AoA / control-surface events</div>
   <li>Lee M. Hively, US Patent 9,306,527 (2016) — systems / methods for generating and/or utilizing scalar-longitudinal waves.</li>
   <li>Hively MCE: SLW from gradient-driven current; predicted not subject to classical skin-effect cutoff.</li>
   <li>High shear: standard hypersonic boundary-layer / MHD sheet physics; SLW coupling remains the claim under test.</li>
+  <li>Hively &amp; Loebl, Physics Essays 32, 112 (2019): SLW flux Eq. B5, impedance Eq. 37, SW §VII, Table I (1/r², no skin effect). Used in the <a href="slw-detectability.html">detectability simulator</a>.</li>
+  <li>RAM-C II flight data: Grantham, NASA TN D-6062 (1970); Jones &amp; Cross, NASA TN D-6617 (1972).</li>
 </ul>
 </div>
 
