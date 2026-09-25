@@ -67,7 +67,7 @@ footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);color:v
 <main class="wrap">
 <p class="kicker">Hypersonic ionospheric plasma · high-shear MHD · SLW / SW</p>
 <h1>Hypersonic plasma-sheath cavitation, high shear, and MHD sheets as SLW / SW sources</h1>
-<p class="lede">Working claim: a hypersonic vehicle in the ionosphere drives a dense, time-varying plasma sheath, density cavities, and <strong>high-shear</strong> MHD electric sheets. Those gradient structures source SLW / SW in Hively’s more-complete electrodynamics (MCE) — a longitudinal / scalar channel conventional RF sensors miss.</p>
+<p class="lede">Working claim: a hypersonic vehicle in the ionosphere drives a dense, time-varying plasma sheath, density cavities, and <strong>high-shear</strong> MHD (magnetohydrodynamic: electrically conducting gas moving through a magnetic field) electric sheets. Those gradient structures source SLW / SW (a scalar-longitudinal wave, and a pure scalar wave) in Hively’s more-complete electrodynamics (MCE) — a longitudinal / scalar channel conventional RF sensors miss.</p>
 
 <div class="banner"><strong>Standalone page.</strong> Independent site — not linked from any other experiment hub. Hypothesis + experiment design only.</div>
 <div class="banner warn"><strong>Tone check.</strong> High shear is established hypersonic / MHD physics. Coupling into Hively SLW / SW is the <em>hypothesis under test</em>. “Cavitation” means a <strong>plasma-density-cavity analog</strong>, not liquid vapor bubbles.</div>
@@ -77,8 +77,8 @@ footer{margin-top:48px;padding-top:18px;border-top:1px solid var(--line);color:v
 
 <h2 id="hypothesis">Hypothesis</h2>
 <div class="card">
-<p>At Mach 5–20 in the upper atmosphere / lower ionosphere, shock heating ionizes air. The vehicle is wrapped in a sheath of free electrons (often n<sub>e</sub> ~ 10<sup>16</sup>–10<sup>20</sup> m⁻³) that already blackouts ordinary radio. The sheath fluctuates with attitude, altitude, ablation, and the geomagnetic field.</p>
-<p><span class="tag">First-class</span> Hypersonic flow is <strong>high-shear flow</strong>: extreme velocity gradients in the boundary layer, shock-slip surfaces, wake shear layers, and MHD-forced sheets. Shear steepens ∇n<sub>e</sub> and ∇φ, drives thin <b>v</b>×<b>B</b> electric sheets and Hall charge separation, and imprints <strong>bursty, attitude-linked modulation</strong> on any longitudinal / scalar channel. Gradient strength scales with shear rate — higher shear → stronger predicted SLW / SW drive than a uniform sheath of the same average n<sub>e</sub>.</p>
+<p>At Mach 5–20 in the upper atmosphere / lower ionosphere, shock heating ionizes air. The vehicle is wrapped in a sheath of free electrons (often n<sub>e</sub> ~ 10<sup>16</sup>–10<sup>20</sup> m⁻³, where <b>n<sub>e</sub></b> is the number of free electrons per cubic metre) that already blackouts ordinary radio. The sheath fluctuates with attitude, altitude, ablation, and the geomagnetic field.</p>
+<p><span class="tag">First-class</span> Hypersonic flow is <strong>high-shear flow</strong>: extreme velocity gradients in the boundary layer, shock-slip surfaces, wake shear layers, and MHD-forced sheets. Shear steepens ∇n<sub>e</sub> (how sharply the electron density changes from place to place) and ∇φ (how sharply the electric potential φ, in volts, changes: the local electric field), drives thin <b>v</b>×<b>B</b> electric sheets (the push on charges moving at velocity <b>v</b> through the magnetic field <b>B</b>) and Hall charge separation (electrons and ions pushed apart by that force), and imprints <strong>bursty, attitude-linked modulation</strong> on any longitudinal / scalar channel. Gradient strength scales with shear rate — higher shear → stronger predicted SLW / SW drive than a uniform sheath of the same average n<sub>e</sub>.</p>
 <p class="eq">Hively EED sketch (educational · HYP; SI ledger form):
 gradient-driven current  J ∝ ∇ρ  (or ∇φ)
 → dynamical scalar  C = ∇·A + c⁻² ∂tΦ ,   □C = −μ₀ (∂tρ + ∇·J)
@@ -86,6 +86,12 @@ gradient-driven current  J ∝ ∇ρ  (or ∇φ)
 SW limit: E = B = 0, C ≠ 0 (Ohmic σE² term off)
 
 Predicted: SLW ignores classical skin-effect cutoff that kills TEM through the sheath.</p>
+<p style="font-size:.92rem;color:var(--muted);margin-bottom:0"><strong>Symbols in plain words.</strong>
+<b>J</b> is the electric current density (amperes flowing through each square metre). <b>ρ</b> (“rho”) is the electric charge per cubic metre, and ∇ρ is how sharply it changes from place to place. <b>Φ</b> (or φ) is the electric scalar potential, in volts. <b>A</b> is the magnetic vector potential; the familiar electric and magnetic fields are built from Φ and A.
+<b>C</b> is Hively's extra “scalar” field: C = ∇·A + c⁻²∂<sub>t</sub>Φ. Here ∇·A is the divergence of A (its net outflow from a point), ∂<sub>t</sub>Φ is how fast Φ changes in time, and <b>c</b> is the speed of light (≈ 3×10⁸ m/s). Standard electromagnetism sets C = 0, the usual “Lorenz gauge”. Hively claims it can be non-zero.
+<b>□</b> is the wave operator (∇² − c⁻²∂<sub>t</sub>²), so □C = … says C travels as a wave at speed c. <b>μ₀</b> is the magnetic constant (permeability of free space, ≈ 1.26×10⁻⁶ H/m). <b>∂<sub>t</sub>ρ + ∇·J</b> measures how far charge conservation fails; standard physics says it is always exactly 0.
+<b>E</b> and <b>B</b> are the electric and magnetic fields. A “longitudinal” E points along the direction of travel, unlike ordinary radio (TEM, transverse electromagnetic waves). <b>r</b> is the distance from the source. <b>σ</b> (“sigma”) is electrical conductivity; σE² is the heating (Ohmic) loss in a conductor.
+<b>SLW</b> is a scalar-longitudinal wave (C plus longitudinal E). <b>SW</b> is a pure scalar wave (C only, with E = B = 0). The <b>skin effect</b> is how a conductor such as plasma stops ordinary radio within a thin surface layer. <b>Z₀</b>, used on the simulator page, is the impedance of free space, about 377 ohms. The page's plain-language <a href="slw-detectability.html#facthyp">glossary</a> lists every symbol.</p>
 </div>
 
 <h2 id="geometry">Source geometry</h2>
