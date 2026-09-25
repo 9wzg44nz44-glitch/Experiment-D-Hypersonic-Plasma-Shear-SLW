@@ -1,4 +1,4 @@
-/* Experiment D v0.2 — "Sheath modulation" engine (expt-d-detect-v0.2)
+/* Experiment D v0.2 — "Sheath modulation" engine (expt-d-detect-v0.3: noise density n(f) now uses the v0.3 receiver chain)
  * Pure functions, no DOM. Needs js/slw-detect.js (the unchanged v0.1 engine) loaded first (browser) or require()d (node).
  * Mirrors sim/expt_d_mod.py (Python reference) and the ExptDMod section of wolfram/ExptDDetect.wl formula-for-formula.
  * Labels: FACT = published physics (cited on the page); HYP = Hively EED as printed; ASSUMPTION = modelling choice (slider);
@@ -7,7 +7,7 @@
 (function (root) {
   "use strict";
   const X = (typeof module !== "undefined" && module.exports) ? require("./slw-detect.js") : root.ExptDDetect;
-  const VERSION = "expt-d-detect-v0.2";
+  const VERSION = "expt-d-detect-v0.3";
   const K = X.K;
   const AMU = 1.66053906660e-27, M_AIR = 28.9644 * AMU;          // FACT USSA-1976 mean molecular mass
   const X_O2 = 0.209476, X_N2 = 0.780840;                          // FACT USSA-1976 volume fractions
@@ -42,12 +42,12 @@
     const T = 4 * n[0] / (Math.pow(n[0] + 1, 2) + Math.pow(n[1], 2));
     return [A, T, n[0]];
   }
-  function noiseDensity(f, p) { // v0.1 shielded-receiver floor / RBW, W/Hz
-    const Nts = -102 + 10 * Math.log10(p.rbw / 30e3);
+  function noiseDensity(f, p) { // shielded-receiver floor / RBW, W/Hz: v0.3 receiver chain (+) outside noise leaking through the cage
+    const Nrx = X.rxChain(p, f, p.rbw).Nrx;                        // v0.3; default chain (TinySA alone) = v0.2's -102 dBm/30 kHz
     const env = X.NOISE_ENV[p.noise_env];
     let N;
-    if (env) { const kT0B = dbm(K.kB * K.T0 * p.rbw); const Fa = env[0] - env[1] * Math.log10(f / 1e6); N = sumDbm(Nts, kT0B + Fa - p.SE_dB); }
-    else N = Nts;
+    if (env) { const kT0B = dbm(K.kB * K.T0 * p.rbw); const Fa = env[0] - env[1] * Math.log10(f / 1e6); N = sumDbm(Nrx, kT0B + Fa - p.SE_dB); }
+    else N = Nrx;
     return Math.pow(10, N / 10) * 1e-3 / p.rbw;
   }
   function apArea(kind, f) {

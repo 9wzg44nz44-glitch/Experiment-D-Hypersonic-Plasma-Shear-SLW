@@ -1,4 +1,5 @@
-/* Experiment D — SLW/SW detectability engine (expt-d-detect-v0.2; v0.1 formulas unchanged, v0.2 adds js/slw-modulation.js)
+/* Experiment D — SLW/SW detectability engine (expt-d-detect-v0.3; v0.1 formulas unchanged, v0.2 adds js/slw-modulation.js,
+ * v0.3 adds the receiver-chain model: Friis cascade + instrument presets; default chain = TinySA alone = v0.2 numbers exactly)
  * Pure functions, no DOM. Used by slw-detectability.html and by node (cross-check vs Python/WL).
  * Labels: FACT = published/standard physics (cited); HYP = Hively EED (as printed in the cited papers / hub ledger);
  *         ASSUMPTION = modelling choice made here; SWEEP = unknown coupling, never given a single value.
@@ -6,7 +7,7 @@
  */
 (function (root) {
   "use strict";
-  const VERSION = "expt-d-detect-v0.2";
+  const VERSION = "expt-d-detect-v0.3";
   // FACT: CODATA 2018 exact / recommended values
   const K = {
     c: 299792458,
@@ -53,7 +54,64 @@
     mech: "vxB", Te_K: 6000, f_close: 1, m_t: 0.1, A_s: 1, d_sh: 0.05,
     f_rx: 30e6, rbw: 30e3, aperture: "hub", SE_dB: 55, noise_env: "quiet_rural",
     log10_eta: -3, chi: 0, log10_kappa: 0, r_km: 100,
+    // v0.3 receiver chain (default = TinySA Ultra alone, no LNA, no cable loss: reproduces v0.2 exactly)
+    rx_preset: "tinysa", n_lna: 0, cable_dB: 0,
+    lna1_G_dB: 21, lna1_NF_dB: 3, lna2_G_dB: 21, lna2_NF_dB: 3, lna3_G_dB: 21, lna3_NF_dB: 3, // PLACEHOLDER LNA values
   };
+
+  // ---- v0.3 receiver back-end presets (noise referred to the instrument input) ----
+  // FACT tinysa.org TinySA4 spec: "Lowest discernible signal without LNA at 30MHz using a RBW of 30kHz of -102dBm"
+  //                               "Lowest discernible signal with LNA at 30MHz using a RBW of 200Hz of -145dBm"
+  // FACT airspy.com HF+ Discovery: "Sensitivity: -140.0 dBm ... MDS Typ. at 500Hz bandwidth in HF" (at 15 MHz; HF coverage 0.5 kHz-31 MHz)
+  // FACT Keysight N9040B UXA data sheet 5992-0090EN p.9, DANL (1 Hz RBW, log averaging), RF/MW options 508/513/526:
+  //      Preamp On (spec): 100-200 kHz -152, 200-500 kHz -155, 0.5-1 MHz -159, 1-10 MHz -161, 10 MHz-2.1 GHz -165, 2.1-3.6 GHz -163 dBm;
+  //      below 100 kHz the preamp column is blank, so the Preamp Off rows are used: 9-100 kHz -141 (spec), 1-9 kHz -137,
+  //      100 Hz-1 kHz -130, 10-100 Hz -125, 3-10 Hz -100 dBm (nominal).
+  // ASSUMPTION: each spot figure is applied at every frequency (as v0.2 did for the TinySA); UXA table clamped outside 3 Hz-3.6 GHz;
+  //             at a table edge the worse (higher) value is used; DANL taken at face value (log-averaged DANL reads ~2.3 dB below
+  //             true noise power, Keysight: noise density = DANL + 2.25 dB, so the UXA preset is slightly optimistic).
+  const UXA_TAB = [[3, 10, -100], [10, 100, -125], [100, 1e3, -130], [1e3, 9e3, -137], [9e3, 100e3, -141],
+    [100e3, 200e3, -152], [200e3, 500e3, -155], [500e3, 1e6, -159], [1e6, 10e6, -161], [10e6, 2.1e9, -165], [2.1e9, 3.6e9, -163]];
+  const RX_PRESETS = {
+    tinysa: { ref: -102, bref: 30e3 },     // TinySA Ultra, no LNA (v0.2 value)
+    tinysa_lna: { ref: -145, bref: 200 },  // TinySA Ultra, internal LNA on
+    airspy_hfd: { ref: -140, bref: 500 },  // Airspy HF+ Discovery, HF
+    uxa_preamp: { table: UXA_TAB },        // Keysight N9040B UXA, preamp on
+    ideal: { ideal: true },                // NF 0 dB bound (F = 1): no receiver beats kT0B
+  };
+  function uxaDanl(f) {
+    const t = UXA_TAB, n = t.length;
+    if (f <= t[0][0]) return t[0][2];
+    if (f >= t[n - 1][1]) return t[n - 1][2];
+    let v = -Infinity;
+    for (let i = 0; i < n; i++) if (f >= t[i][0] && f <= t[i][1] && t[i][2] > v) v = t[i][2];
+    return v;
+  }
+  // back-end noise power in bandwidth rbw at frequency f (dBm)
+  function backNoise(preset, f, rbw) {
+    const q = RX_PRESETS[preset];
+    if (!q) throw new Error("unknown rx_preset " + preset);
+    if (q.ideal) return dbm(K.kB * K.T0 * rbw);
+    if (q.table) return uxaDanl(f) + 10 * Math.log10(rbw);
+    return q.ref + 10 * Math.log10(rbw / q.bref);
+  }
+  // FACT Friis (Proc. IRE 32, 419, 1944): F = F1 + (F2-1)/G1 + (F3-1)/(G1 G2) + ...; receiver noise = kT0B F.
+  // FACT lossy passive line at T0: F = L, G = 1/L (Friis 1944; Pozar, Microwave Engineering 4e, Sec. 10.1). ASSUMPTION: cable at 290 K.
+  function rxChain(p, f, rbw) {
+    const kT0B = dbm(K.kB * K.T0 * rbw);
+    const Nb = backNoise(p.rx_preset, f, rbw);
+    const st = [];
+    if (p.cable_dB > 0) { const L = Math.pow(10, p.cable_dB / 10); st.push([L, 1 / L]); }
+    for (let k = 1; k <= p.n_lna; k++) st.push([Math.pow(10, p["lna" + k + "_NF_dB"] / 10), Math.pow(10, p["lna" + k + "_G_dB"] / 10)]);
+    const Fb = Math.pow(10, (Nb - kT0B) / 10);
+    if (st.length === 0) return { kT0B, Nb, Nrx: Nb, Fsys: Fb, Ffront: Fb, dFback: 0, stages: 0 };
+    let F = st[0][0], G = st[0][1];
+    for (let i = 1; i < st.length; i++) { F += (st[i][0] - 1) / G; G *= st[i][1]; }
+    const Ffront = F;                       // Friis limit if the gain ahead of the back end were infinite
+    const dFback = (Fb - 1) / G;            // back-end share of F_sys (what more gain could still remove)
+    F += dFback;
+    return { kT0B, Nb, Nrx: kT0B + 10 * Math.log10(F), Fsys: F, Ffront, dFback, stages: st.length };
+  }
 
   function model(pin) {
     const p = Object.assign({}, DEFAULTS, pin || {});
@@ -95,14 +153,23 @@
     // ---- receiver + noise (FACT) ----
     const Arx = p.aperture === "recip" ? lam * lam / (4 * Math.PI) : HUB_AEFF * HUB_ETA; // HYP carry-over / HYP reciprocity
     const Atem = 1.5 * lam * lam / (4 * Math.PI);           // FACT short dipole, Balanis
-    const Nts = -102 + 10 * Math.log10(p.rbw / 30e3);        // FACT tinysa.org TinySA4 spec, no LNA
-    const kT0B = dbm(K.kB * K.T0 * p.rbw);
+    const ch = rxChain(p, p.f_rx, p.rbw);                    // v0.3 receiver chain (FACT Friis); default = TinySA alone
+    const Nts = ch.Nb;                                       // back-end instrument noise (v0.2: TinySA -102 dBm in 30 kHz)
+    const Nrx = ch.Nrx;                                      // whole receiver chain, referred to the antenna terminal
+    const kT0B = ch.kT0B;
     const env = NOISE_ENV[p.noise_env];
     const fMHz = p.f_rx / 1e6;
     const Fa = env ? env[0] - env[1] * Math.log10(fMHz) : -Infinity;
     const Next_conv = env ? kT0B + Fa : -Infinity;
-    const Nconv = env ? sumDbm(Nts, Next_conv) : Nts;          // conventional (TEM) receiver
-    const Nhiv = env ? sumDbm(Nts, Next_conv - p.SE_dB) : Nts;  // Hively RX with Faraday/sleeve TEM rejection SE
+    const Nleak = env ? Next_conv - p.SE_dB : -Infinity;      // outside TEM noise leaking through the Faraday cage (SE)
+    const Nconv = env ? sumDbm(Nrx, Next_conv) : Nrx;          // conventional (TEM) receiver, secondary comparison
+    const Nhiv = env ? sumDbm(Nrx, Nleak) : Nrx;               // SLW receive sphere inside the Faraday cage
+    // headroom (dB) = how much lower the SLW floor could go: (i) ideal NF 0 dB receiver, (ii) infinite gain after the front stage.
+    // Written as 10 log10(1 + x) in units of kT0B to avoid cancellation: l = leaked outside noise / kT0B = 10^((Fa - SE)/10).
+    const l = env ? Math.pow(10, (Fa - p.SE_dB) / 10) : 0;
+    const headIdeal = 10 * Math.log1p((ch.Fsys - 1) / (1 + l)) / Math.LN10;
+    const headGain = 10 * Math.log1p(ch.dFback / (ch.Ffront + l)) / Math.LN10;
+    const margin = env ? 10 * Math.log10(ch.Fsys) - (Fa - p.SE_dB) : null; // receiver noise minus leaked noise (dB)
     // ---- HYP: SLW (Hively & Loebl 2019 Eq. B5; US 9,306,527 Eq. 15) ----
     const eta = Math.pow(10, p.log10_eta), kappa = Math.pow(10, p.log10_kappa);
     const Sslw1 = K.Z0 * Ipk * Ipk / Math.pow(4 * Math.PI * r, 2);  // W/m^2 at eta = 1
@@ -129,6 +196,9 @@
       Isrc_A: Isrc, fc_Hz: fc, Fspec: Fspec, Iband_A: Iband, eps_r: er, eps_i: ei, n_re: n[0], n_im: n[1],
       alpha_Npm: alpha, Ash_dB: Ash_dB, Tint_dB: Tint_dB, Arx_m2: Arx, Atem_m2: Atem,
       Nts_dBm: Nts, Fa_dB: env ? Fa : null, Nconv_dBm: Nconv, Nhiv_dBm: Nhiv,
+      Nrx_dBm: Nrx, NFsys_dB: 10 * Math.log10(ch.Fsys), kT0B_dBm: kT0B, Nleak_dBm: Nleak,
+      rx_dom: (margin === null || margin >= 0) ? "receiver" : "leak", rx_margin_dB: margin,
+      head_ideal_dB: headIdeal, head_gain_dB: headGain,
       Pslw1_dBm: Pslw1_dBm, Pslw_dBm: Pslw_dBm, SNR_slw_dB: Pslw_dBm - Nhiv,
       Cpk_T: Cpk, ELpk_Vm: ELpk,
       Psw1_dBm: Psw1_dBm, Psw_dBm: Psw_dBm, SNR_sw_dB: Psw_dBm - Nhiv,
@@ -142,7 +212,7 @@
     return o;
   }
 
-  const api = { VERSION, K, DEFAULTS, model, rhoAir, soundSpeed, csqrt, NOISE_ENV };
+  const api = { VERSION, K, DEFAULTS, model, rhoAir, soundSpeed, csqrt, NOISE_ENV, RX_PRESETS, UXA_TAB, uxaDanl, backNoise, rxChain };
   if (typeof module !== "undefined" && module.exports) module.exports = api;
   else root.ExptDDetect = api;
 })(typeof window !== "undefined" ? window : globalThis);

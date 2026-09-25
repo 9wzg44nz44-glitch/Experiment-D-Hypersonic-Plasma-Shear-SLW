@@ -1,5 +1,5 @@
 (* Run on a machine with Wolfram:  wolframscript -file wolfram/ExptDMod_RunGrid.wl   (repo root; grid_mod.json in ./sim/)
-   Evaluates the v0.2 sheath-modulation twin on grid_mod.json and writes wl_mod_outputs.json; then in sim/:
+   Evaluates the sheath-modulation twin (physics v0.3; n(f) uses the v0.3 receiver chain) on grid_mod.json and writes wl_mod_outputs.json; then in sim/:
    node dump_js_mod.mjs && node compare_outputs.mjs js_mod_outputs.json wl_mod_outputs.json 1e-9 *)
 dir = If[$InputFileName =!= "", ParentDirectory[DirectoryName[$InputFileName]], Directory[]];
 Get[FileNameJoin[{dir, "wolfram", "ExptDDetect.wl"}]];

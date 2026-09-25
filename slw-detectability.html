@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="format-detection" content="telephone=no">
-<meta name="description" content="Experiment D — SLW/SW detectability estimate for a hypersonic plasma sheath: FACT sheath physics (RAM-C II) + HYP Hively EED, parametric sweeps over unknown couplings; v0.2 adds the sheath modulation (flicker) study. Not flight data.">
-<title>Experiment D · Could a receiver hear it? (physics expt-d-detect-v0.2 · UI v0.2.0)</title>
+<meta name="description" content="Experiment D — SLW/SW detectability estimate for a hypersonic plasma sheath: FACT sheath physics (RAM-C II) + HYP Hively EED, parametric sweeps over unknown couplings; v0.2 adds the sheath modulation (flicker) study; v0.3 adds the receiver chain (LNAs, instruments, Friis cascade). Not flight data.">
+<title>Experiment D · Could a receiver hear it? (physics expt-d-detect-v0.3 · UI v0.3.0)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -124,6 +124,12 @@ details.sub[open]{padding-bottom:12px}
 .controls.big label{font-size:.92rem;background:#0a101c;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
 .controls.big select{min-height:44px}
 #p-mod .hero-verdict .big{font-size:clamp(1.15rem,3.4vw,1.55rem)}
+/* ---- v0.3 receiver-chain tab ---- */
+.tag.ph{background:rgba(255,214,102,.14);color:#ffd666;border-color:rgba(255,214,102,.5)}
+.target-box{border:1px solid #7ec8ff;background:rgba(126,200,255,.07);border-radius:12px;padding:10px 14px;margin:8px 0 12px;font-size:.95rem}
+.target-box p{margin:.3em 0}
+#p-rx .hero-verdict .big{font-size:clamp(1.05rem,3vw,1.4rem)}
+#p-rx .hero-verdict .nope{color:#ff9a8a}
 </style>
 </head>
 <body>
@@ -172,10 +178,11 @@ details.sub[open]{padding-bottom:12px}
     <input id="log10_eta" type="range" min="-12" max="0" step="0.1" value="-3" aria-label="log10 eta">
   </div>
 </div>
-<p class="tinyline"><span id="verLine"></span> · Cloud twin pending sync (<span class="verCloudX"></span>) · <a href="#" data-open="p-version">details</a> · <b>New:</b> <a href="#" data-open="p-mod">Sheath modulation</a> (does the flicker pattern help?)</p>
+<p class="tinyline"><span id="verLine"></span> · Cloud twin pending sync (<span class="verCloudX"></span>) · <a href="#" data-open="p-version">details</a> · <b>New:</b> <a href="#" data-open="p-rx">Receiver chain</a> (would amplifiers or a better receiver help?)</p>
 
 <nav class="tabs" aria-label="More detail">
-  <button type="button" class="new" aria-expanded="false" aria-controls="p-mod">Sheath modulation<span class="nb">new</span></button>
+  <button type="button" class="new" aria-expanded="false" aria-controls="p-rx">Receiver chain<span class="nb">new</span></button>
+  <button type="button" aria-expanded="false" aria-controls="p-mod">Sheath modulation</button>
   <button type="button" aria-expanded="false" aria-controls="p-how">How it works</button>
   <button type="button" aria-expanded="false" aria-controls="p-charts">Charts &amp; table</button>
   <button type="button" aria-expanded="false" aria-controls="p-full">Full controls</button>
@@ -341,6 +348,162 @@ details.sub[open]{padding-bottom:12px}
 </div>
 </section>
 
+<!-- ============ RECEIVER CHAIN (new in v0.3) ============ -->
+<section class="panel" id="p-rx" hidden>
+<h3>Receiver chain: how quiet can the receiver get?</h3>
+<div class="target-box">
+<p><b>What is being detected.</b> The target is the <b>SLW</b> (and its <b>SW proxy</b>) from the vehicle <span class="tag hyp">HYP</span>, picked up by the Hively-style <b>receive sphere</b>, which sits <b>inside a Faraday cage</b>. Ordinary radio (<b>TEM</b>) waves are <em>not</em> the target. They are only background <span class="tag">FACT</span>: outside noise (lightning and atmospheric, broadcast, man-made) that leaks through the cage, plus the receiver's own thermal noise.</p>
+<p style="margin-bottom:0"><b>What this tab changes.</b> Amplifiers (LNAs), bandwidth and averaging only lower the <em>noise</em> side. They help SLW detection only under the <span class="tag hyp">HYP</span> that the sphere turns an SLW into a voltage at its terminals. Outside TEM noise is removed by the <b>Faraday cage around the receive sphere</b>, by its shielding effectiveness <b>SE</b>, not by amplifiers. The SLW is assumed to pass the cage wall <span class="tag hyp">HYP</span>.</p>
+</div>
+
+<div class="simple">
+  <div class="ctl">
+    <span class="name">Receiver chain</span>
+    <div class="def">What sits between the sphere and your screen: optional low-noise amplifiers (<b>LNAs</b>) and the instrument that measures the noise.</div>
+    <select id="rx_chain" aria-label="Receiver chain preset">
+      <option value="tinysa" selected>TinySA Ultra alone (v0.2 default)</option>
+      <option value="tinysa_1">TinySA + 1 LNA, 21 dB / 3 dB (placeholder)</option>
+      <option value="tinysa_2">TinySA + 2 LNAs, 21 dB / 3 dB (placeholder)</option>
+      <option value="tinysa_lna">TinySA Ultra with its built-in LNA on</option>
+      <option value="lf_best">LF/HF: ZFL-500LN+ → Airspy HF+ Discovery</option>
+      <option value="uhf70">70 cm: ZX60-P33ULN+ → TinySA (LNA on)</option>
+      <option value="uhf23">23 cm: Kuhne MKU LNA 132 AH → TinySA (LNA on)</option>
+      <option value="uxa">Lab analyser: Keysight UXA N9040B, preamp on</option>
+      <option value="ideal">Ideal receiver, NF 0 dB (a limit, not a product)</option>
+      <option value="custom">Custom (set in “Details” below)</option>
+    </select>
+  </div>
+  <div class="ctl">
+    <span class="name">Faraday cage SE</span><output class="val" id="orx_SE"></output>
+    <div class="def">Shielding of the cage around the receive sphere: how many dB it cuts outside TEM noise. The same slider as in Full controls.</div>
+    <input id="rx_SE" type="range" min="0" max="80" step="1" value="55" aria-label="Faraday cage shielding effectiveness in dB">
+  </div>
+</div>
+<div class="simple" style="margin-top:0">
+  <div class="ctl">
+    <span class="name">Local radio noise</span>
+    <div class="def">How noisy the site is outside the cage (ITU-R P.372 site type).</div>
+    <select id="rx_env" aria-label="Local radio noise site"><option value="quiet_rural" selected>quiet rural</option><option value="rural">rural</option><option value="residential">residential</option><option value="city">city</option><option value="none">none (receiver noise only)</option></select>
+  </div>
+  <div class="ctl" id="rxNow"></div>
+</div>
+
+<div id="rxVerdict" class="hero-verdict" aria-live="polite">
+  <div class="big" id="rxBig">—</div>
+  <div class="sub" id="rxSub"></div>
+  <div class="fine" id="rxFine"></div>
+</div>
+<div style="overflow-x:auto"><table class="res" id="rxBands"></table></div>
+<p class="legend" id="rxBandsNote"></p>
+
+<div class="subs">
+<details class="sub"><summary>1 · Details: instrument, number of LNAs, gain and noise figure per stage, cable loss</summary>
+<div class="controls big">
+  <label>Instrument at the end of the chain (“back end”) <select id="rx_back">
+    <option value="tinysa" selected>TinySA Ultra, no LNA: −102 dBm in 30 kHz (tinysa.org, at 30 MHz)</option>
+    <option value="tinysa_lna">TinySA Ultra, built-in LNA on: −145 dBm in 200 Hz (tinysa.org, at 30 MHz)</option>
+    <option value="airspy_hfd">Airspy HF+ Discovery: −140 dBm in 500 Hz (airspy.com, HF, 15 MHz)</option>
+    <option value="uxa_preamp">Keysight UXA N9040B, preamp on: DANL table (data sheet 5992-0090EN)</option>
+    <option value="ideal">Ideal, NF 0 dB (kT₀B: the floor no receiver beats)</option></select></label>
+  <label>Number of LNAs in front of it <output id="on_lna"></output><input id="n_lna" type="range" min="0" max="3" step="1" value="0"></label>
+  <label>Cable loss between sphere and first LNA (dB) <output id="ocable"></output><input id="cable_dB" type="range" min="0" max="10" step="0.1" value="0"></label>
+  <label>Fill LNA 1 from a datasheet <select id="lna_part">
+    <option value="ph" selected>Placeholder: 21 dB gain, 3 dB NF</option>
+    <option value="zfl500">Mini-Circuits ZFL-500LN+ (0.1–500 MHz): 24 dB min, NF 2.9 dB typ</option>
+    <option value="zfl1000">Mini-Circuits ZFL-1000LN+ (0.1–1000 MHz): 20 dB min, NF 2.9 dB typ</option>
+    <option value="p33_400">Mini-Circuits ZX60-P33ULN+ at 400 MHz: 24.06 dB, NF 0.43 dB typ</option>
+    <option value="p33_1500">Mini-Circuits ZX60-P33ULN+ at 1.5 GHz: 14.52 dB, NF 0.46 dB typ</option>
+    <option value="mku132">Kuhne MKU LNA 132 AH (1246–1346 MHz): 33 dB, NF 0.4 dB</option>
+    <option value="zk06_1g">Zeenko ZK06-UM at 1 GHz: 22.5 dB, NF 0.6 dB (not for 241 kHz)</option></select></label>
+</div>
+<div class="controls big" id="rxStages">
+  <label class="st1">LNA 1 gain G₁ (dB) <span class="tag ph" id="ph1">PLACEHOLDER</span> <output id="og1"></output><input id="lna1_G_dB" type="range" min="0" max="40" step="0.01" value="21"></label>
+  <label class="st1">LNA 1 noise figure NF₁ (dB) <output id="onf1"></output><input id="lna1_NF_dB" type="range" min="0.2" max="10" step="0.01" value="3"></label>
+  <label class="st2">LNA 2 gain G₂ (dB) <span class="tag ph">PLACEHOLDER</span> <output id="og2"></output><input id="lna2_G_dB" type="range" min="0" max="40" step="0.01" value="21"></label>
+  <label class="st2">LNA 2 noise figure NF₂ (dB) <output id="onf2"></output><input id="lna2_NF_dB" type="range" min="0.2" max="10" step="0.01" value="3"></label>
+  <label class="st3">LNA 3 gain G₃ (dB) <span class="tag ph">PLACEHOLDER</span> <output id="og3"></output><input id="lna3_G_dB" type="range" min="0" max="40" step="0.01" value="21"></label>
+  <label class="st3">LNA 3 noise figure NF₃ (dB) <output id="onf3"></output><input id="lna3_NF_dB" type="range" min="0.2" max="10" step="0.01" value="3"></label>
+</div>
+<p class="legend">Readouts: <span id="rxRead"></span></p>
+<p class="legend"><span class="tag ph">PLACEHOLDER</span> = a round number, not a datasheet value (21 dB / 3 dB). The datasheet choices above are typical values from the manufacturers' own data sheets. Each is used as if it applied at every frequency <span class="tag asm">ASSUMPTION</span>, so check the part's frequency range (warnings appear above).</p>
+</details>
+
+<details class="sub"><summary>2 · What the symbols mean</summary>
+<dl class="gloss">
+<dt>TEM</dt><dd>ordinary radio waves (electric and magnetic fields at right angles to the direction of travel). Here they are only noise.</dd>
+<dt>SE</dt><dd>shielding effectiveness of the Faraday cage around the receive sphere, in dB: how much weaker outside TEM noise is inside the cage</dd>
+<dt>k<sub>B</sub>, T₀</dt><dd>Boltzmann's constant (1.38×10⁻²³ J/K); the standard reference temperature, 290 K (about room temperature)</dd>
+<dt>B (RBW)</dt><dd>receiver bandwidth in hertz: how wide a slice of spectrum is measured at once (default 30 kHz)</dd>
+<dt>kT₀B</dt><dd>thermal noise power of a resistor at 290 K in bandwidth B: −174 dBm per hertz, or −129.2 dBm in 30 kHz. No receiver can go below this at 290 K.</dd>
+<dt>F, NF</dt><dd>noise factor F: how many times more noise a device adds, relative to kT₀B at its input (F = 1 is perfect). Noise figure NF = 10·log₁₀F in dB (NF = 0 dB is perfect).</dd>
+<dt>G</dt><dd>power gain of an amplifier stage, as a ratio (or in dB, 10·log₁₀G)</dd>
+<dt>F<sub>sys</sub>, NF<sub>sys</sub></dt><dd>noise factor and noise figure of the whole chain (cable + LNAs + instrument), referred to the sphere's terminals</dd>
+<dt>L</dt><dd>cable loss as a power ratio. A cable at 290 K has F = L, so 2 dB of cable before the first LNA adds 2 dB to NF<sub>sys</sub>.</dd>
+<dt>LNA</dt><dd>low-noise amplifier: a small, quiet preamplifier placed first in the chain</dd>
+<dt>DANL</dt><dd>displayed average noise level: the spectrum analyser's own noise floor, usually quoted in a 1 Hz bandwidth (dBm/Hz)</dd>
+<dt>LDS, MDS</dt><dd>lowest discernible signal / minimum discernible signal: a signal equal to the receiver's noise in the stated bandwidth</dd>
+<dt>F<sub>a</sub></dt><dd>outside radio noise above kT₀, in dB (ITU-R P.372)</dd>
+<dt>τ</dt><dd>“tau”, averaging (dwell) time in seconds, used in the Sheath modulation tab</dd>
+<dt>η, κ<sub>C</sub></dt><dd>unknown SLW coupling (SWEEP); receiver response to a pure scalar wave (SWEEP). The SW proxy threshold is quoted as η√κ<sub>C</sub>.</dd>
+</dl>
+</details>
+
+<details class="sub"><summary>3 · Equations new in v0.3, with sources</summary>
+<p class="eq"><span class="tag">FACT</span> R1  Friis cascade:  F_sys = F₁ + (F₂−1)/G₁ + (F₃−1)/(G₁G₂) + …   (H. T. Friis, Proc. IRE 32, 419, 1944)
+       stage order here: [cable] → LNA 1 → LNA 2 → LNA 3 → instrument
+<span class="tag">FACT</span> R2  receiver noise referred to the sphere's terminals:  N_rx = k_B·T₀·B·F_sys,  i.e.  N_rx(dBm) = kT₀B(dBm) + NF_sys
+<span class="tag">FACT</span> R3  cable (passive loss L) at T₀:  F = L,  G = 1/L   (Friis 1944; Pozar, Microwave Engineering 4e, §10.1)   <span class="tag asm">ASSUMPTION</span> cable at 290 K
+<span class="tag">FACT</span> R4  instrument noise factor from its quoted floor:  F_inst = N_inst / (k_B T₀ B),  N_inst = (quoted level) + 10·log₁₀(B / quoted bandwidth)
+<span class="tag">FACT</span> R5  floor on the SLW receive sphere (unchanged v0.2 form):  N = N_rx ⊕ (kT₀B + F_a − SE)      ⊕ = add powers
+       ordinary unshielded receiver (secondary comparison only):  N = N_rx ⊕ (kT₀B + F_a)
+       with no chain in front of the instrument, N_rx is the quoted instrument floor itself, so the default reproduces v0.2 exactly.
+<span class="tag">FACT</span> R6  radiometer equation for a broadband signal:  d = (S/N)·√(B·τ)   (R. H. Dicke, Rev. Sci. Instrum. 17, 268, 1946)
+       used ONLY in the Sheath modulation tab (its Eckart/Rudnick detector reduces to R6 in a flat band). The main view stays a single look, so nothing is counted twice.
+<span class="tag">FACT</span> R7  readouts derived from R1–R5 (no new physics):
+       “ideal receiver headroom” = N − [kT₀B ⊕ leaked noise]   (F_sys → 1)
+       “more-gain headroom” = N − [kT₀B·F_front ⊕ leaked noise],  F_front = R1 without the instrument term (gain after the first LNA → ∞)
+<span class="tag hyp">HYP</span>  SW proxy:  P_SW = κ_C · ½ P_SLW   (v0.1), so the smallest η√κ_C = √2 × smallest η in every detector</p>
+<p class="legend"><b>Instrument figures used</b> (all quoted from the maker, all <span class="tag">FACT</span>): TinySA Ultra “lowest discernible signal without LNA at 30 MHz using a resolution bandwidth of 30 kHz of −102 dBm” (NF ≈ 27.2 dB) and “with LNA at 30 MHz using a resolution bandwidth of 200 Hz of −145 dBm” (NF ≈ 6.0 dB); the same page lists the built-in LNA as “20 dB LNA with Noise Figure of 5 dB up to 4 GHz”. Airspy HF+ Discovery: “Sensitivity −140.0 dBm (0.02 µV / 50 ohms at 15 MHz) MDS typ. at 500 Hz bandwidth in HF” (NF ≈ 7.0 dB). Keysight N9040B UXA (options 508/513/526), DANL, preamp on, specification: −152 dBm (100–200 kHz), −155 (200–500 kHz), −159 (0.5–1 MHz), −161 (1–10 MHz), −165 (10 MHz–2.1 GHz), −163 (2.1–3.6 GHz), all in 1 Hz; below 100 kHz the preamp-off rows are used. <span class="tag asm">ASSUMPTION</span>: each spot figure is applied at every frequency, as v0.2 did for the TinySA. At a table edge the worse value is used. DANL is taken at face value, although Keysight notes that true noise density is about DANL + 2.25 dB, so the UXA line is about 2 dB optimistic. The ideal receiver (F = 1) is a limit, not a product.</p>
+</details>
+
+<details class="sub"><summary>4 · Why not a VNA or an oscilloscope?</summary>
+<ul class="tight">
+<li><b>A vector network analyser (VNA) only measures a signal it sends out itself.</b> It compares what comes back with what it transmitted, so it cannot listen for a signal from a vehicle. It is excellent for Experiments A/B, though: measuring the cage's shielding and the antenna links, where its very narrow IF bandwidth (down to about 10 Hz on hobby units) gives a large dynamic range.</li>
+<li><b>An 8-bit oscilloscope's noise floor is far higher than a spectrum analyser's.</b> It sees the whole bandwidth at once, with coarse digitising steps. It is useful only after a lot of gain, to look at a waveform's shape, not to find a weak signal.</li>
+<li><b>No receiver beats kT₀</b> = −174 dBm per hertz at 290 K <span class="tag">FACT</span>. The “Ideal receiver” preset shows that limit.</li>
+</ul>
+</details>
+
+<details class="sub"><summary>5 · The Faraday cage, cables, self-noise and overload (practical notes)</summary>
+<ul class="tight">
+<li><b>The cage does the TEM work.</b> Outside TEM noise (lightning and atmospheric, broadcast, man-made) is removed by the Faraday cage around the receive sphere, by its SE. The SLW is assumed to pass the cage wall <span class="tag hyp">HYP</span>. When the readout says TEM noise leaking through the cage sets the floor, a better cage (solid sheet, bonded seams, no cables through the wall) helps more than more amplifiers.</li>
+<li><b>No cable crosses the cage wall.</b> The electronics inside run on battery. Data leaves over all-dielectric optical fibre through a waveguide-below-cutoff tube soldered all the way round (360°) to the cage wall. <span class="tag">FACT</span> A circular tube of inner diameter d blocks everything below its TE₁₁ cutoff f<sub>c</sub> = 1.841·c/(π·d), about 176/d GHz with d in mm. Well below cutoff it attenuates about 32 dB for each tube diameter of length (Ott, <em>Electromagnetic Compatibility Engineering</em>, Wiley 2009). Not modelled here.</li>
+<li><b>Electronics inside the cage make their own RF.</b> Put them in a separate small shielded box, away from the sphere. Measure their self-noise with the sphere replaced by a 50 Ω load: that is the receiver noise N<sub>rx</sub> this tab predicts.</li>
+<li><b>Overload</b> (a caveat only, not modelled): high-gain LF preamplifiers near AM broadcast stations can overload, and stacking LNAs makes this worse. Near a broadcaster, one quiet stage with a high intercept point is better than two or three.</li>
+<li><b>Zeenko ZK06-UM</b> is a UHF amplifier: its datasheet rates it 10 MHz–6 GHz, lists 5 dB gain at 100 kHz and 23.5 dB at 5 MHz, and gives no noise figure below 10 MHz. Do not count on it at 241 kHz.</li>
+</ul>
+</details>
+
+<details class="sub"><summary>6 · Honest verdict for the receiver chain (baseline, 100 km)</summary>
+<ul class="tight" id="rxHonest">
+<li><b>UHF (433.92 / 1296 MHz): no receiver makes the SLW detectable at the defaults.</b> Even an ideal NF 0 dB receiver needs η ≈ 230 / 570 (single look), and η cannot exceed 1. The best real chains (≈0.4–0.5 dB NF) reach η ≈ 240 / 600, against 5 300 / 13 000 for the TinySA alone.</li>
+<li><b>241 kHz Mack band (1 s averaging): outside noise leaking through the cage sets the floor once one decent LNA is added</b> (quiet rural, SE 55 dB). One 21 dB / 3 dB LNA lowers the floor by ≈10.7 dB and the smallest η from ≈1.2×10⁻⁴ to ≈3.5×10⁻⁵. A second LNA or an ideal receiver adds less than 0.5 dB. After that, only a better cage (higher SE) or a quieter site helps.</li>
+<li><b>1, 30, 433, 1296 MHz: one LNA lowers the floor by ≈19.3 dB, two by ≈24 dB</b> (the receiver's own noise dominates there). One good low-NF LNA in front of a reasonable instrument gets within ≈0.5–2 dB of the ideal limit. A third LNA buys almost nothing.</li>
+<li>Numbers for every site/SE/chain combination are in the <a href="rxchain/REPORT.md">receiver-chain report</a>. The gear list is in <a href="rxchain/SHOPPING_LIST.md">rxchain/SHOPPING_LIST.md</a>.</li>
+</ul>
+</details>
+
+<details class="sub"><summary>7 · Cross-check and version</summary>
+<ul class="tight">
+<li>Physics <code class="verPhysX"></code>. Engine: <a href="js/slw-detect.js">js/slw-detect.js</a> (<code>rxChain</code>). The Sheath modulation noise density n(f) uses the same chain.</li>
+<li><b>Default = v0.2, bit for bit:</b> with the default chain (TinySA alone, no LNA, no cable), all 308,448 v0.2 outputs on the v0.1 and v0.2 grids are identical (worst difference 0).</li>
+<li><b>JS vs Python reference</b> on a 10,800-point receiver-chain grid (5 instruments × 0–3 LNAs with 3 gain/NF sets × cable 0/2 dB × 241 kHz, 1, 30, 433.59, 433.92, 1296 MHz × 3 sites × SE 0/55/80 × 2 bandwidths) plus 80 modulation-tab points: <b>PASS 602,242 / FAIL 0</b> at rel tol 10⁻⁹, worst rel 2.2×10⁻¹⁴.</li>
+<li><b>Cloud twin pending sync (<span class="verCloudX"></span>).</b> The Wolfram twin (<a href="wolfram/ExptDDetect.wl">ExptDDetect.wl</a>) mirrors the v0.3 receiver chain but has not been run. The JS-vs-Wolfram compare for v0.3 is owed.</li>
+</ul>
+</details>
+</div>
+</section>
+
 <!-- ============ HOW IT WORKS ============ -->
 <section class="panel" id="p-how" hidden>
 <h3>The claim chain, step by step</h3>
@@ -349,7 +512,7 @@ details.sub[open]{padding-bottom:12px}
 <li><b>Shear → currents.</b> The gas right at the skin moves with the vehicle, while gas a centimetre away barely moves. This steep velocity change is called <b>shear</b>, measured by the <b>shear rate S</b> (how many metres per second the speed changes per metre of height, in units of 1/s). Charged gas moving through the Earth's magnetic field <b>B</b> feels a push that drives an electric <b>current density J</b> (amperes flowing per square metre). Turbulence makes that current flicker. <span class="tag">FACT</span> (Ohm's law; we use its upper limit).</li>
 <li><b>Currents → SLW?</b> In Hively's EED, part of such a current (the fraction <b>η</b>) would create a new field <b>C</b>, a “scalar” field that ordinary electromagnetism does not have. A travelling ripple in C, together with an electric field pointing along the direction of travel, is the SLW. <span class="tag hyp">HYP</span></li>
 <li><b>Travel to the receiver.</b> Hively's own papers say the SLW spreads out like ordinary radio: its power falls with the square of the distance. The claimed difference is that it passes through the plasma sheath and metal shielding that block ordinary radio. <span class="tag hyp">HYP</span></li>
-<li><b>Receive.</b> A Hively-style antenna inside a Faraday shield (a metal enclosure that blocks ordinary radio) feeds the TinySA. The TinySA's own noise sets the floor: about −102 dBm in a 30 kHz bandwidth. <b>dBm</b> means decibels relative to one milliwatt; −102 dBm is about 6×10⁻¹⁴ W. <span class="tag">FACT</span></li>
+<li><b>Receive.</b> A Hively-style receive sphere inside a Faraday cage (a metal enclosure that blocks ordinary radio) feeds the TinySA. The TinySA's own noise sets the floor: about −102 dBm in a 30 kHz bandwidth. <b>dBm</b> means decibels relative to one milliwatt; −102 dBm is about 6×10⁻¹⁴ W. <span class="tag">FACT</span> The <a href="#" data-open="p-rx">Receiver chain</a> tab (v0.3) shows what low-noise amplifiers or a better instrument would change.</li>
 </ol>
 <h3>Why ordinary radio can't do this</h3>
 <p>The plasma sheath reflects and absorbs ordinary radio below its <b>plasma frequency f<sub>p</sub></b> (≈ 9 GHz at n<sub>e</sub> = 10¹⁸). This is the well-known reentry <b>radio blackout</b>. Even without the blackout, the ordinary radio noise from the same currents and the glow (thermal emission) of the hot plasma are far below the receiver's floor at these distances. <span class="tag">FACT</span></p>
@@ -361,7 +524,7 @@ details.sub[open]{padding-bottom:12px}
 <section class="panel" id="p-charts" hidden>
 <h3>Received power vs distance</h3>
 <div class="plotbox"><canvas id="pRange" aria-label="Received power vs distance"></canvas></div>
-<p class="legend"><i style="background:#3db8a0;height:4px"></i>SLW at your η (HYP) <i style="background:#3db8a0;height:1px"></i>SLW if η = 1 (HYP) <i style="background:#b39ddb"></i>scalar-wave (SW) proxy (HYP) <i style="background:#e0a060"></i>ordinary radio from the same currents (FACT) <i style="background:#e07060"></i>plasma glow (FACT) <i style="background:#fff"></i>noise floor, shielded Hively receiver <i style="background:#9aabbf"></i>noise floor, ordinary receiver</p>
+<p class="legend"><i style="background:#3db8a0;height:4px"></i>SLW at your η (HYP) <i style="background:#3db8a0;height:1px"></i>SLW if η = 1 (HYP) <i style="background:#b39ddb"></i>scalar-wave (SW) proxy (HYP) <i style="background:#e0a060"></i>ordinary radio from the same currents (FACT) <i style="background:#e07060"></i>plasma glow (FACT) <i style="background:#fff"></i>noise floor, receive sphere inside the Faraday cage <i style="background:#9aabbf"></i>noise floor, ordinary receiver</p>
 <p class="legend">Vertical dotted line = your distance. Power is in dBm within the receiver bandwidth.</p>
 <h3>Smallest η needed vs distance, for each band</h3>
 <div class="plotbox"><canvas id="pEta" aria-label="eta needed vs distance"></canvas></div>
@@ -400,8 +563,9 @@ details.sub[open]{padding-bottom:12px}
 <div class="controls">
   <label>Antenna collecting-area model <select id="aperture"><option value="auto" selected>Auto (from the band preset)</option><option value="hub">Small Hively antenna: π(5 cm)² × 0.5 (hub convention, HYP)</option><option value="recip">Full-size resonant antenna: λ²/4π (λ = wavelength; HYP)</option></select></label>
   <label>Receiver bandwidth RBW (resolution bandwidth, kHz; wider = more noise) <output id="orbw"></output><input id="rbw_k" type="range" min="0.2" max="600" step="0.1" value="30"></label>
-  <label>Shielding SE (how many dB the Faraday shield and sleeve balun cut ordinary radio) <output id="oSE"></output><input id="SE_dB" type="range" min="0" max="80" step="1" value="55"></label>
-  <label>Local radio noise (ITU-R P.372 site type) <select id="noise_env"><option value="quiet_rural" selected>quiet rural</option><option value="rural">rural</option><option value="residential">residential</option><option value="city">city</option><option value="none">none (TinySA's own noise only)</option></select></label>
+  <label>Faraday cage shielding around the receive sphere, SE (how many dB the cage cuts outside ordinary TEM radio noise; the SLW is assumed to pass the cage wall, HYP) <output id="oSE"></output><input id="SE_dB" type="range" min="0" max="80" step="1" value="55"></label>
+  <label>Local radio noise (ITU-R P.372 site type) <select id="noise_env"><option value="quiet_rural" selected>quiet rural</option><option value="rural">rural</option><option value="residential">residential</option><option value="city">city</option><option value="none">none (receiver noise only)</option></select></label>
+  <label>Receiver chain (LNAs and instrument) <span class="legend">set in the <a href="#" data-open="p-rx">Receiver chain</a> tab</span></label>
 </div></fieldset>
 <fieldset><legend>Unknown EED couplings (SWEEP: no measured value exists)</legend>
 <div class="controls">
@@ -444,7 +608,8 @@ details.sub[open]{padding-bottom:12px}
 <dt>F<sub>a</sub>, T₀</dt><dd>outside radio-noise level above thermal (dB, ITU-R P.372); reference temperature 290 K</dd>
 <dt>η, χ, κ<sub>C</sub></dt><dd>the unknown EED couplings (see the Assumptions tab)</dd>
 <dt>SNR, dB, dBm</dt><dd>signal-to-noise ratio; decibels (10·log₁₀ of a power ratio); decibels relative to 1 milliwatt</dd>
-<dt>RBW, SE</dt><dd>receiver resolution bandwidth; shielding effectiveness of the Faraday enclosure (dB)</dd>
+<dt>RBW, SE</dt><dd>receiver resolution bandwidth; shielding effectiveness (dB) of the Faraday cage around the receive sphere</dd>
+<dt>NF, F, G, kT₀B, DANL</dt><dd>receiver-chain symbols (noise figure, noise factor, gain, thermal noise, analyser noise level), defined in the <a href="#" data-open="p-rx">Receiver chain</a> tab</dd>
 </dl>
 <h3>Equations</h3>
 <p class="eq"><span class="tag">FACT</span> plasma frequency  ω_p = √(n_e e²/ε₀ m_e),  f_p = ω_p/2π ≈ 8.98 √n_e Hz   (NRL Plasma Formulary)
@@ -457,8 +622,9 @@ details.sub[open]{padding-bottom:12px}
 <span class="tag asm">ASSUMPTION</span> flicker spectrum flat up to f_c = S/2π, then falling as f^(−5/3) (Kolmogorov turbulence; no upper cutoff, so optimistic at GHz)
    fraction of flicker power inside the receiver band  F = RBW · g(f)/(2.5 f_c);   I_pk = √2 · I_src,rms · √F
 <span class="tag">FACT</span> plasma slab  ε = 1 − ω_p²/(ω(ω+iν)),  n = √ε (refractive index),  α = (ω/c)·Im n (loss per metre),  loss = 8.686·α·d dB;  entry/exit transmission 1−|Γ|² = 4 Re n/|n+1|²
-<span class="tag">FACT</span> TinySA Ultra noise floor  −102 dBm + 10·log₁₀(RBW/30 kHz)   (no preamp)
-<span class="tag">FACT</span> outside radio noise  F_a = c₁ − d₁·log₁₀(f in MHz)  (ITU-R P.372 Table 1);  noise = k_B·T₀·RBW·F_a (T₀ = 290 K); a shielded Hively receiver sees it reduced by SE
+<span class="tag">FACT</span> TinySA Ultra noise floor  −102 dBm + 10·log₁₀(RBW/30 kHz)   (no preamp; v0.3 default receiver)
+<span class="tag">FACT</span> v0.3 receiver chain  N_rx = k_B·T₀·RBW·F_sys,  F_sys from the Friis cascade (Friis 1944); see the Receiver chain tab
+<span class="tag">FACT</span> outside radio noise  F_a = c₁ − d₁·log₁₀(f in MHz)  (ITU-R P.372 Table 1);  noise = k_B·T₀·RBW·F_a (T₀ = 290 K); on the receive sphere it is reduced by the Faraday cage's SE
 
 <span class="tag hyp">HYP</span> Hively EED, SI form (hub ledger):  C = ∇·A + c⁻² ∂Φ/∂t ;   □C = −μ₀ (∂ρ/∂t + ∇·J) ;   ∇·E + ∂C/∂t = ρ/ε₀ ;   ∇×B − c⁻²∂E/∂t − ∇C = μ₀J
    (in standard physics ∂ρ/∂t + ∇·J = 0 always, i.e. charge is conserved, so C stays zero; η measures how much this fails)
@@ -470,7 +636,7 @@ details.sub[open]{padding-bottom:12px}
 
 <span class="tag">FACT</span> ordinary radio from the same flickering currents (tiny antennas of length δ; Balanis Eq. 4-16):  P = N_c Z₀ (π/3)(I_cell δ/λ)²,  then plasma loss, received on an ordinary dipole of area 1.5 λ²/4π  (N_c = A_s/δ² cells)
 <span class="tag">FACT</span> plasma glow (thermal emission):  T_b = T_e (1−|Γ|²);  P = k_B T_b RBW · 1.5 A_s/(4π r²)</p>
-<p class="legend">v0.2 adds 13 equations for the sheath flicker (modulation) study. They are listed with sources in the <a href="#" data-open="p-mod">Sheath modulation</a> tab, section 6.</p>
+<p class="legend">v0.2 adds 13 equations for the sheath flicker (modulation) study. They are listed with sources in the <a href="#" data-open="p-mod">Sheath modulation</a> tab, section 6. v0.3 adds the receiver-chain equations R1–R7 (<a href="#" data-open="p-rx">Receiver chain</a> tab, section 3).</p>
 </section>
 
 <!-- ============ ASSUMPTIONS ============ -->
@@ -492,7 +658,8 @@ details.sub[open]{padding-bottom:12px}
 <li>Peak current = √2 × rms, fed into Hively's Eq. B5, which is printed without the usual ½ time-average factor (±3 dB).</li>
 <li>The receiver is far from the source (many wavelengths away). There is no extra loss along the air path. Line of sight is assumed. A ground receiver needs a distance at least equal to the altitude.</li>
 <li>Antenna collecting area: the hub convention for Dan's small antennas, or λ²/4π for a full-size resonant antenna.</li>
-<li>The shielded receiver cuts ordinary radio by SE dB (default 55). The SLW is assumed to pass the shield (HYP).</li>
+<li>The receive sphere sits inside a Faraday cage that cuts outside ordinary (TEM) radio noise by SE dB (default 55). The SLW is assumed to pass the cage wall (HYP). No cable crosses the cage wall (battery power, optical fibre out through a waveguide-below-cutoff tube).</li>
+<li>v0.3 receiver chain: each instrument's quoted noise figure is applied at every frequency; the cable before the first LNA is at 290 K; LNA gain and NF are flat with frequency (PLACEHOLDER 21 dB / 3 dB unless a datasheet part is chosen). Amplifier overload is not modelled.</li>
 <li>The ordinary-radio estimate treats each turbulent cell as a tiny antenna inside the plasma. The plasma glow assumes an opaque slab at T<sub>e</sub>.</li>
 <li>The SW proxy uses the same η as the SLW, with energy C²/2μ₀ moving at c.</li>
 </ol>
@@ -514,7 +681,10 @@ details.sub[open]{padding-bottom:12px}
 <li>RAM-C II 61 km CFD peak 1.9×10²⁰ m⁻³: <a href="https://eprints.soton.ac.uk/498700">eprints.soton.ac.uk/498700</a>. Conditions: arXiv:2410.12760.</li>
 <li>NRL Plasma Formulary; US Standard Atmosphere 1976 (NASA-TM-X-74335); CODATA 2018 constants.</li>
 <li>ITU-R Rec. P.372 (Radio noise), Table 1. <a href="https://www.itu.int/rec/R-REC-P.372/en">itu.int/rec/R-REC-P.372</a></li>
-<li>TinySA Ultra (TinySA4) specification: <a href="https://tinysa.org/wiki/pmwiki.php?n=TinySA4.Specification">tinysa.org</a> (as used on the hub FX-1 page)</li>
+<li>TinySA Ultra (TinySA4) specification: <a href="https://tinysa.org/wiki/pmwiki.php?n=TinySA4.Specification">tinysa.org</a> (as used on the hub FX-1 page). v0.3 also uses its “lowest discernible signal with LNA at 30 MHz, 200 Hz RBW, −145 dBm” and “20 dB LNA with Noise Figure of 5 dB up to 4 GHz” lines.</li>
+<li><b>v0.3 receiver chain:</b> Friis, H. T. (1944) Noise figures of radio receivers. Proc. IRE 32(7), 419–422. <a href="https://doi.org/10.1109/JRPROC.1944.232049">doi:10.1109/JRPROC.1944.232049</a> · Dicke, R. H. (1946) Rev. Sci. Instrum. 17, 268, <a href="https://doi.org/10.1063/1.1770483">doi:10.1063/1.1770483</a> · Pozar, D. M., <em>Microwave Engineering</em> 4e (Wiley 2012) §10.1 (noise figure of a lossy line) · Ott, H. W., <em>Electromagnetic Compatibility Engineering</em> (Wiley 2009) (waveguide below cutoff).</li>
+<li>Instrument data: Keysight N9040B UXA data sheet 5992-0090EN, DANL table p. 9, <a href="https://www.keysight.com/us/en/assets/7018-04541/data-sheets/5992-0090.pdf">keysight.com</a> · Airspy HF+ Discovery specifications, <a href="https://airspy.com/airspy-hf-discovery/">airspy.com</a> · SDRplay RSPdx-R2 data sheet, <a href="https://sdrplay.com/wp-content/uploads/2026/06/RSPdxR2_Datasheet.pdf">sdrplay.com</a> · LibreVNA spec sheet, <a href="https://github.com/jankae/LibreVNA">github.com/jankae/LibreVNA</a>.</li>
+<li>Amplifier data: Mini-Circuits data sheets <a href="https://www.minicircuits.com/pdfs/ZFL-500LN+.pdf">ZFL-500LN+</a>, <a href="https://www.minicircuits.com/pdfs/ZFL-1000LN+.pdf">ZFL-1000LN+</a>, <a href="https://www.minicircuits.com/pdfs/ZX60-P33ULN+.pdf">ZX60-P33ULN+</a>, <a href="https://www.minicircuits.com/pdfs/ZX60-P103LN+.pdf">ZX60-P103LN+</a>, <a href="https://www.minicircuits.com/pdfs/ZX60-100VH+.pdf">ZX60-100VH+</a> · Kuhne electronic <a href="https://shop.kuhne-electronic.com/kuhne/en/shop/MKU+LNA+132+AH+SMA++Low+Noise+Amplifier/?card=316">MKU LNA 132 AH</a> · Zeenko ZKxx-UM table (image data sheet as distributed by resellers, e.g. <a href="https://kamami.pl/en/amplifier-modules/1201360-low-noise-rf-amplifier-10-mhz-6-ghz-zk06-um-zeenko-um-series-usb-c-5902186331549.html">Kamami</a>; <a href="https://www.zeenko.tech/lna-modules">zeenko.tech</a> itself publishes no table). Full list with prices: <a href="rxchain/SHOPPING_LIST.md">rxchain/SHOPPING_LIST.md</a>.</li>
 <li>Balanis, <em>Antenna Theory</em> 3e, Eqs. 4-8…4-16.</li>
 <li>Hively, L. M. &amp; Loebl, A. S., <em>Classical and extended electrodynamics</em>, Physics Essays 32(1), 112 (2019), <a href="https://doi.org/10.4006/0836-1398-32.1.112">doi:10.4006/0836-1398-32.1.112</a>: Eqs. 36–38, 44, App. A–B (Eq. B5), Table I.</li>
 <li>Hively, L. M., US Patent 9,306,527 B1 (2016), Eq. 15.</li>
@@ -528,11 +698,11 @@ details.sub[open]{padding-bottom:12px}
 <!-- ============ VERSION ============ -->
 <section class="panel" id="p-version" hidden>
 <ul class="tight">
-<li><b>Page layout:</b> <code id="verUI"></code> (novice layout plus the new Sheath modulation tab).</li>
-<li><b>Physics:</b> <code id="verPhys"></code>. v0.2 adds the sheath-modulation engine <a href="js/slw-modulation.js">js/slw-modulation.js</a>. The v0.1 formulas in <a href="js/slw-detect.js">js/slw-detect.js</a> are unchanged (only its version string changed).</li>
-<li><b>Cloud twin pending sync (<span id="verCloud"></span>).</b> The Wolfram Mathematica twin <a href="wolfram/ExptDDetect.wl">wolfram/ExptDDetect.wl</a> (now including the v0.2 modulation section) is written but has not been run (no Wolfram kernel on the build machine). Its Manipulate labels mirror this page.</li>
-<li><b>JS vs Python reference</b> (<a href="sim/expt_d_model.py">sim/expt_d_model.py</a>, 2,304-point grid × 46 outputs, rel tol 1e-9): <b>PASS 105,985 / FAIL 0</b>, re-run for v0.2. Modulation engine vs <a href="sim/expt_d_mod.py">sim/expt_d_mod.py</a>: <b>PASS 205,633 / FAIL 0</b> (864 points × 238 outputs, worst rel 2.4×10⁻¹²).</li>
-<li><b>JS vs Wolfram:</b> owed (v0.1 engine and v0.2 modulation). Run <code>wolfram/ExptDDetect_RunGrid.wl</code> and <code>wolfram/ExptDMod_RunGrid.wl</code>, then <code>node sim/compare_outputs.mjs</code>.</li>
+<li><b>Page layout:</b> <code id="verUI"></code> (novice layout, Sheath modulation tab, and the new Receiver chain tab).</li>
+<li><b>Physics:</b> <code id="verPhys"></code>. v0.2 added the sheath-modulation engine <a href="js/slw-modulation.js">js/slw-modulation.js</a>. v0.3 adds the receiver chain (Friis cascade + instrument presets) to <a href="js/slw-detect.js">js/slw-detect.js</a>; the modulation noise density uses it too. With the default chain (TinySA alone) every v0.2 number is unchanged, bit for bit (308,448 values checked).</li>
+<li><b>Cloud twin pending sync (<span id="verCloud"></span>).</b> The Wolfram Mathematica twin <a href="wolfram/ExptDDetect.wl">wolfram/ExptDDetect.wl</a> (now including the v0.2 modulation section and the v0.3 receiver chain) is written but has not been run (no Wolfram kernel on the build machine). Its Manipulate labels mirror this page.</li>
+<li><b>JS vs Python reference</b> (<a href="sim/expt_d_model.py">sim/expt_d_model.py</a>, 2,304-point grid, rel tol 1e-9): <b>PASS 124,417 / FAIL 0</b>, re-run for v0.3 (now 54 outputs). Modulation engine vs <a href="sim/expt_d_mod.py">sim/expt_d_mod.py</a>: <b>PASS 205,633 / FAIL 0</b> (864 points, worst rel 2.4×10⁻¹²). v0.3 receiver-chain grid (<code>sim/grid_rx.json</code>, 10,800 points, + 80 modulation points): <b>PASS 602,242 / FAIL 0</b>, worst rel 2.2×10⁻¹⁴.</li>
+<li><b>JS vs Wolfram:</b> owed (v0.1 engine, v0.2 modulation and the v0.3 receiver chain). Run <code>wolfram/ExptDDetect_RunGrid.wl</code>, <code>wolfram/ExptDMod_RunGrid.wl</code> and <code>wolfram/ExptDRx_RunGrid.wl</code>, then <code>node sim/compare_outputs.mjs</code>.</li>
 <li>Repo: <a href="https://github.com/9wzg44nz44-glitch/Experiment-D-Hypersonic-Plasma-Shear-SLW">github.com/9wzg44nz44-glitch/Experiment-D-Hypersonic-Plasma-Shear-SLW</a></li>
 </ul>
 </section>
@@ -549,12 +719,13 @@ details.sub[open]{padding-bottom:12px}
 (function(){
   "use strict";
   const X = window.ExptDDetect, $ = (id) => document.getElementById(id);
-  const UI = "UI v0.2.0";
+  const UI = "UI v0.3.0";
   const XM = window.ExptDMod;
-  const PHYS = XM.VERSION; // physics version string (v0.2: sheath modulation added)
+  const PHYS = XM.VERSION; // physics version string (v0.3: receiver chain added)
   $("verTop").textContent = PHYS; $("verLine").textContent = UI + " · physics " + PHYS;
   $("verUI").textContent = UI; $("verPhys").textContent = PHYS; $("verCloud").textContent = PHYS; $("verFoot").textContent = UI + " · physics " + PHYS;
   document.querySelectorAll(".verCloudX").forEach(el => el.textContent = PHYS); $("mVer").textContent = PHYS;
+  document.querySelectorAll(".verPhysX").forEach(el => el.textContent = PHYS);
   // band presets: frequency + automatic collecting-area model (unchanged numbers)
   const BANDS = { "433":[433.92e6,"hub","433.92 MHz"], "1296":[1296e6,"hub","1296 MHz"], "30":[30e6,"hub","30 MHz"], "1":[1e6,"recip","1 MHz"] };
   const ORDER = ["1","30","433","1296"];
@@ -569,7 +740,7 @@ details.sub[open]{padding-bottom:12px}
       mech:$("mech").value, Te_K:+$("Te_K").value, f_close:Math.pow(10,+$("f_close_l").value), m_t:+$("m_t").value, A_s:+$("A_s").value,
       d_sh:+$("d_sh").value/100, f_rx:BANDS[b][0], rbw:+$("rbw_k").value*1e3, aperture:apFor(b), SE_dB:+$("SE_dB").value,
       noise_env:$("noise_env").value, log10_eta:+$("log10_eta").value, chi:+$("chi").value, log10_kappa:+$("log10_kappa").value,
-      r_km:Math.pow(10,+$("r_l").value)
+      r_km:Math.pow(10,+$("r_l").value), ...rxParams()
     };
   }
   const sup = (e) => { const m={"-":"⁻","0":"⁰","1":"¹","2":"²","3":"³","4":"⁴","5":"⁵","6":"⁶","7":"⁷","8":"⁸","9":"⁹",".":"·"}; return String(e).split("").map(ch=>m[ch]||ch).join(""); };
@@ -591,7 +762,7 @@ details.sub[open]{padding-bottom:12px}
       ["Plasma frequency f_p (FACT)", fe(q.fp_Hz/1e9)+" GHz"], ["Collision rate ν (FACT)", fe(q.nu_s)+" /s"], ["Conductivity σ (FACT)", fe(q.sigma_Sm)+" S/m"],
       ["Speed jump Δu (FACT)", fe(q.du_ms)+" m/s"], ["Current density J, upper limit (FACT)", fe(q.J_Am2)+" A/m²"], ["Flickering current, rms", fe(q.Isrc_A)+" A"],
       ["Flicker corner f_c = S/2π", fe(q.fc_Hz)+" Hz"], ["Fraction of flicker in band", fe(q.Fspec)], ["Plasma loss, ordinary radio (FACT)", fd(q.Ash_dB)+" dB"],
-      ["Plasma edge transmission 1−|Γ|² (FACT)", fd(q.Tint_dB)+" dB"], ["Noise floor, shielded Hively receiver", fd(q.Nhiv_dBm)+" dBm"], ["Noise floor, ordinary receiver", fd(q.Nconv_dBm)+" dBm"],
+      ["Plasma edge transmission 1−|Γ|² (FACT)", fd(q.Tint_dB)+" dB"], ["Noise floor, receive sphere in Faraday cage", fd(q.Nhiv_dBm)+" dBm"], ["Receiver chain noise figure NF_sys", fd(q.NFsys_dB)+" dB"], ["Noise floor, ordinary receiver", fd(q.Nconv_dBm)+" dBm"],
       ["Antenna collecting area A_rx", fe(q.Arx_m2)+" m²"],
       ["SLW received power (HYP)", fd(q.Pslw_dBm)+" dBm"], ["SLW SNR (HYP)", fd(q.SNR_slw_dB)+" dB"], ["Smallest η for SNR 0 dB", fe(q.eta_th0)],
       ["Smallest η for SNR 10 dB", fe(q.eta_th10)], ["Scalar-wave proxy power (HYP)", fd(q.Psw_dBm)+" dBm"], ["Smallest η√κ_C, scalar wave", fe(q.etakap_th0_sw)],
@@ -779,10 +950,103 @@ details.sub[open]{padding-bottom:12px}
     modPlot(pm, o);
     if (document.querySelector("#p-mod details.sub[open]")) modTables(pm, o);
   }
-  document.querySelectorAll("#p-mod details.sub").forEach(d => d.addEventListener("toggle", () => { if (d.open) update(); }));
+  document.querySelectorAll("#p-mod details.sub, #p-rx details.sub").forEach(d => d.addEventListener("toggle", () => { if (d.open) update(); }));
+  // ================= v0.3 Receiver chain tab =================
+  const PH = { g: 21, nf: 3 };
+  const LNA_PARTS = { ph:[21,3,null], zfl500:[24,2.9,[0.1e6,500e6]], zfl1000:[20,2.9,[0.1e6,1000e6]], p33_400:[24.06,0.43,[400e6,3000e6]],
+    p33_1500:[14.52,0.46,[400e6,3000e6]], mku132:[33,0.4,[1246e6,1346e6]], zk06_1g:[22.5,0.6,[10e6,6000e6]] };
+  const PART_NAME = { zfl500:"ZFL-500LN+", zfl1000:"ZFL-1000LN+", p33_400:"ZX60-P33ULN+", p33_1500:"ZX60-P33ULN+", mku132:"MKU LNA 132 AH", zk06_1g:"Zeenko ZK06-UM" };
+  // back-end coverage (maker's stated range) for warnings only; the engine applies each figure at every frequency (ASSUMPTION)
+  const BACK_RANGE = { tinysa:[0.1e6,800e6,"TinySA Ultra (normal mode 100 kHz–800 MHz; up to 6 GHz in Ultra mode; the −102 dBm figure is specified at 30 MHz)"],
+    tinysa_lna:[0.1e6,4000e6,"TinySA Ultra built-in LNA (up to 4 GHz; the −145 dBm figure is specified at 30 MHz)"],
+    airspy_hfd:[500,31e6,"Airspy HF+ Discovery (HF 0.5 kHz–31 MHz, also 64–260 MHz; figure specified at 15 MHz)"],
+    uxa_preamp:[3,3.6e9,"Keysight UXA table (3 Hz–3.6 GHz used here)"], ideal:[0,Infinity,""] };
+  const CHAINS = {
+    tinysa:{back:"tinysa", n:0, part:"ph"}, tinysa_1:{back:"tinysa", n:1, part:"ph"}, tinysa_2:{back:"tinysa", n:2, part:"ph"},
+    tinysa_lna:{back:"tinysa_lna", n:0, part:"ph"}, lf_best:{back:"airspy_hfd", n:1, part:"zfl500"},
+    uhf70:{back:"tinysa_lna", n:1, part:"p33_400"}, uhf23:{back:"tinysa_lna", n:1, part:"mku132"},
+    uxa:{back:"uxa_preamp", n:0, part:"ph"}, ideal:{back:"ideal", n:0, part:"ph"} };
+  let rxApplying = false;
+  function applyChain(key){
+    const c = CHAINS[key]; if (!c) return;
+    rxApplying = true;
+    $("rx_back").value = c.back; $("n_lna").value = c.n; $("cable_dB").value = 0; $("lna_part").value = c.part;
+    const pt = LNA_PARTS[c.part];
+    $("lna1_G_dB").value = pt[0]; $("lna1_NF_dB").value = pt[1];
+    [2,3].forEach(k => { $("lna"+k+"_G_dB").value = PH.g; $("lna"+k+"_NF_dB").value = PH.nf; });
+    rxApplying = false;
+  }
+  $("rx_chain").addEventListener("input", () => applyChain($("rx_chain").value));
+  $("lna_part").addEventListener("input", () => { const pt = LNA_PARTS[$("lna_part").value]; $("lna1_G_dB").value = pt[0]; $("lna1_NF_dB").value = pt[1]; if (+$("n_lna").value < 1) $("n_lna").value = 1; $("rx_chain").value = "custom"; });
+  ["rx_back","n_lna","cable_dB","lna1_G_dB","lna1_NF_dB","lna2_G_dB","lna2_NF_dB","lna3_G_dB","lna3_NF_dB"].forEach(id => $(id).addEventListener("input", () => {
+    if (rxApplying) return; $("rx_chain").value = "custom";
+    if (id === "lna1_G_dB" || id === "lna1_NF_dB") $("lna_part").value = (+$("lna1_G_dB").value === PH.g && +$("lna1_NF_dB").value === PH.nf) ? "ph" : $("lna_part").value;
+  }));
+  const RX_SYNC = [["rx_SE","SE_dB"],["rx_env","noise_env"]];
+  RX_SYNC.forEach(([m, g]) => { $(m).addEventListener("input", () => { $(g).value = $(m).value; }); $(g).addEventListener("input", () => { $(m).value = $(g).value; }); });
+  function rxParams(){
+    return { rx_preset:$("rx_back").value, n_lna:+$("n_lna").value, cable_dB:+$("cable_dB").value,
+      lna1_G_dB:+$("lna1_G_dB").value, lna1_NF_dB:+$("lna1_NF_dB").value, lna2_G_dB:+$("lna2_G_dB").value, lna2_NF_dB:+$("lna2_NF_dB").value,
+      lna3_G_dB:+$("lna3_G_dB").value, lna3_NF_dB:+$("lna3_NF_dB").value };
+  }
+  const fHz4 = (f) => f >= 1e6 ? (+(f/1e6).toPrecision(4))+" MHz" : f >= 1e3 ? (+(f/1e3).toPrecision(4))+" kHz" : (+f.toPrecision(4))+" Hz";
+  function rxWarn(p, f){
+    const w = [], br = BACK_RANGE[p.rx_preset];
+    if (br && (f < br[0] || f > br[1])) w.push(fHz4(f)+" is outside the stated range of the "+br[2]+".");
+    const part = $("lna_part").value, pr = LNA_PARTS[part][2];
+    if (p.n_lna >= 1 && pr && (f < pr[0] || f > pr[1])) w.push("LNA 1 ("+PART_NAME[part]+") is rated "+fHz4(pr[0])+"–"+fHz4(pr[1])+", so its gain/NF do not apply at "+fHz4(f)+".");
+    return w;
+  }
+  function rxUpdate(p, q){
+    SYNC_RX_LABELS(p);
+    const base = X.model(Object.assign({}, p, {rx_preset:"tinysa", n_lna:0, cable_dB:0}));
+    const bandName = BANDS[$("band").value][2];
+    const leakDom = q.rx_dom === "leak";
+    const v = $("rxVerdict");
+    v.className = q.eta_th0 <= 1 ? "hero-verdict" : "hero-verdict no";
+    $("rxBig").innerHTML = 'Noise floor '+fd(q.Nhiv_dBm)+' dBm at '+bandName+' · receiver noise figure NF<sub>sys</sub> '+fd(q.NFsys_dB)+' dB';
+    let sub;
+    if (q.Fa_dB === null) sub = 'With no outside noise, <b>your receiver sets the floor</b>. ';
+    else if (leakDom) sub = '<b>TEM noise leaking through the Faraday cage sets the floor</b> ('+fd(-q.rx_margin_dB)+' dB above your receiver\'s own noise); a better cage (solid sheet, bonded seams, no cables through the wall) helps more than more amps. ';
+    else sub = '<b>Your receiver\'s own noise sets the floor</b> ('+fd(q.rx_margin_dB)+' dB above the outside TEM noise leaking through the Faraday cage). ';
+    sub += 'A perfect NF 0 dB receiver could lower the floor by at most <b>'+fd(q.head_ideal_dB)+' dB</b>'+(p.n_lna>=1 ? '; more gain after LNA 1 could buy at most <b>'+fd(q.head_gain_dB)+' dB</b>.' : '.');
+    $("rxSub").innerHTML = sub;
+    const snrOK = q.eta_th0 <= 1;
+    $("rxFine").innerHTML = 'Smallest detectable η for the SLW <span class="tag hyp">HYP</span>: <b>'+fx(q.eta_th0)+'</b> (TinySA alone: '+fx(base.eta_th0)+') · SW proxy η√κ<sub>C</sub>: <b>'+fx(q.etakap_th0_sw)+'</b> · '+
+      (snrOK ? 'some η ≤ 1 would be detected' : 'not detectable for any η ≤ 1')+' · single look, '+(p.rbw/1e3).toFixed(1)+' kHz, '+p.r_km.toFixed(p.r_km<10?1:0)+' km. '+
+      rxWarn(p, p.f_rx).map(s => '<span class="nope">⚠ '+s+'</span>').join(" ");
+    $("rxNow").innerHTML = '<span class="name">This chain, in one line</span><div class="def" style="margin-top:6px">'+rxChainText(p)+'</div>';
+    // all-bands table (main-page bands single look + Mack band with 1 s averaging from the modulation engine)
+    const rows = ORDER.map(bk => { const qq = X.model(Object.assign({}, p, {f_rx:BANDS[bk][0], aperture:apFor(bk)})); return [BANDS[bk][2]+(apFor(bk)==="recip"?" (λ²/4π)":" (hub)"), qq.Nhiv_dBm, qq.rx_dom, qq.eta_th0, qq.etakap_th0_sw, "single look", BANDS[bk][0]]; });
+    const pm = modParams(p); pm.tau_s = 1; pm.d_th = 1;
+    const om = XM.model(pm), f2 = om.f2, n2 = XM.noiseDensity(f2, Object.assign({}, X.DEFAULTS, pm))*pm.rbw;
+    const q2 = X.model(Object.assign({}, pm, {f_rx:f2, aperture:"recip"}));
+    rows.unshift(["Mack band "+fHz(f2)+" (λ²/4π)", dbmW(n2), q2.rx_dom, om.rMack_eta, Math.SQRT2*om.rMack_eta, "1 s averaging", f2]);
+    $("rxBands").innerHTML = '<tr><th>Band</th><th>Floor (dBm in '+(p.rbw/1e3).toFixed(0)+' kHz)</th><th>Floor set by</th><th>Smallest η, SLW <span class="tag hyp">HYP</span></th><th>Smallest η√κ<sub>C</sub>, SW proxy <span class="tag hyp">HYP</span></th><th>Detector</th></tr>'+
+      rows.map(r => '<tr><td class="l">'+r[0]+(rxWarn(p, r[6]).length?' <span class="nope" title="'+rxWarn(p, r[6]).join(' ').replace(/"/g,"'")+'">⚠</span>':'')+'</td><td>'+fd(r[1])+'</td><td class="l">'+(r[2]==="leak"?"TEM leaking through cage":"your receiver")+'</td>'+okc(r[3])+okc(r[4])+'<td class="l">'+r[5]+'</td></tr>').join("");
+    $("rxBandsNote").innerHTML = 'Green = some η ≤ 1 would be detected, red = impossible. ⚠ = outside a part\'s stated frequency range (hover for details). Other settings as on the main view (distance, n<sub>e</sub>, Full controls). The Mack-band row uses the Sheath modulation detector with 1 s averaging (Dicke/Rudnick), the other rows a single look, exactly as in their own tabs.';
+    $("rxRead").textContent = "kT₀B = "+fd(q.kT0B_dBm)+" dBm · instrument alone "+fd(q.Nts_dBm)+" dBm · receiver chain N_rx = "+fd(q.Nrx_dBm)+" dBm (NF_sys "+(q.NFsys_dB).toFixed(2)+" dB) · outside noise leaking through the cage "+(q.Nleak_dBm===-Infinity?"none":fd(q.Nleak_dBm)+" dBm")+" · floor "+fd(q.Nhiv_dBm)+" dBm · ordinary unshielded receiver (secondary) "+fd(q.Nconv_dBm)+" dBm";
+    document.querySelectorAll("#rxStages .st2").forEach(el => el.style.display = p.n_lna >= 2 ? "" : "none");
+    document.querySelectorAll("#rxStages .st3").forEach(el => el.style.display = p.n_lna >= 3 ? "" : "none");
+    document.querySelectorAll("#rxStages .st1").forEach(el => el.style.display = p.n_lna >= 1 ? "" : "none");
+    $("ph1").style.display = $("lna_part").value === "ph" ? "" : "none";
+  }
+  function rxChainText(p){
+    const back = {tinysa:"TinySA Ultra", tinysa_lna:"TinySA Ultra (LNA on)", airspy_hfd:"Airspy HF+ Discovery", uxa_preamp:"Keysight UXA (preamp on)", ideal:"ideal NF 0 dB receiver"}[p.rx_preset];
+    const parts = ["receive sphere (inside the Faraday cage)"];
+    if (p.cable_dB > 0) parts.push(p.cable_dB.toFixed(1)+" dB cable");
+    for (let k=1;k<=p.n_lna;k++) parts.push("LNA "+k+" ("+p["lna"+k+"_G_dB"]+" dB, NF "+p["lna"+k+"_NF_dB"]+" dB"+(k===1 && $("lna_part").value!=="ph" ? ", "+PART_NAME[$("lna_part").value] : (k>1||$("lna_part").value==="ph" ? ", placeholder" : ""))+")");
+    parts.push(back);
+    return parts.join(" → ");
+  }
+  function SYNC_RX_LABELS(p){
+    $("orx_SE").textContent = p.SE_dB+" dB"; $("on_lna").textContent = p.n_lna; $("ocable").textContent = p.cable_dB.toFixed(1)+" dB";
+    [1,2,3].forEach(k => { $("og"+k).textContent = p["lna"+k+"_G_dB"]+" dB"; $("onf"+k).textContent = p["lna"+k+"_NF_dB"]+" dB"; });
+  }
   function update(){
     const p=params(), q=X.model(p); labels(p,q); verdict(p,q);
     if (!$("p-mod").hidden) modUpdate(p);
+    if (!$("p-rx").hidden) rxUpdate(p, q);
     if (!$("p-full").hidden) meters(p,q);
     if (!$("p-charts").hidden) { table(p); plotRange(p); plotEta(p); }
   }
@@ -800,6 +1064,7 @@ details.sub[open]{padding-bottom:12px}
   $("reset").addEventListener("click", () => {
     document.querySelectorAll("input[type=range]").forEach(el => el.value = el.defaultValue);
     document.querySelectorAll("select").forEach(el => Array.from(el.options).forEach(o => o.selected = o.defaultSelected));
+    applyChain("tinysa");
     update();
   });
   document.querySelectorAll("input,select").forEach(el => el.addEventListener("input", update));

@@ -1,4 +1,4 @@
-"""Experiment D v0.2 - 'Sheath modulation' study (physics id expt-d-detect-v0.2). Python reference.
+"""Experiment D v0.2 - 'Sheath modulation' study (physics id expt-d-detect-v0.3: n(f) uses the v0.3 receiver chain). Python reference.
 
 Mirrors js/slw-modulation.js (browser/node) and the ExptDMod* section of wolfram/ExptDDetect.wl formula-for-formula.
 Builds on the UNCHANGED v0.1 engine (../expt_d_model.py): same sheath current J, same random-phase current
@@ -15,7 +15,7 @@ _here = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [_here, os.path.join(_here, "..")]  # repo sim/ layout | sim-lab layout
 import expt_d_model as B  # v0.1 engine
 
-VERSION = "expt-d-detect-v0.2"
+VERSION = "expt-d-detect-v0.3"
 AMU = 1.66053906660e-27
 M_AIR = 28.9644 * AMU            # FACT USSA-1976 sea-level mean molecular mass (constant below 86 km)
 X_O2, X_N2 = 0.209476, 0.780840  # FACT USSA-1976 volume fractions
@@ -82,15 +82,15 @@ def sheath_loss_db(f, p):
 
 
 def noise_density(f, p):
-    """v0.1 shielded Hively receiver floor divided by RBW (W/Hz): TinySA spec density (+) (kT0 F_a - SE)."""
-    Nts = -102 + 10 * math.log10(p["rbw"] / 30e3)
+    """Shielded receiver floor divided by RBW (W/Hz): v0.3 receiver chain (+) (kT0 F_a - SE). Default chain = v0.2 TinySA."""
+    Nrx = B.rx_chain(p, f, p["rbw"])["Nrx"]
     env = B.NOISE_ENV[p["noise_env"]]
     if env:
         kT0B = B.dbm(B.kB * B.T0 * p["rbw"])
         Fa = env[0] - env[1] * math.log10(f / 1e6)
-        N = B.sum_dbm(Nts, kT0B + Fa - p["SE_dB"])
+        N = B.sum_dbm(Nrx, kT0B + Fa - p["SE_dB"])
     else:
-        N = Nts
+        N = Nrx
     return 10 ** (N / 10) * 1e-3 / p["rbw"]
 
 
