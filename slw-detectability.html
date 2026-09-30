@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="format-detection" content="telephone=no">
 <meta name="description" content="Experiment D — SLW/SW detectability estimate for a hypersonic plasma sheath: FACT sheath physics (RAM-C II) + HYP Hively EED, parametric sweeps over unknown couplings; v0.2 adds the sheath modulation (flicker) study; v0.3 adds the receiver chain (LNAs, instruments, Friis cascade). Not flight data.">
-<title>Experiment D · Could a receiver hear it? (physics expt-d-detect-v0.3 · UI v0.3.1)</title>
+<title>Experiment D · Could a receiver hear it? (physics expt-d-detect-v0.3.1 · UI v0.3.1)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;600;700&display=swap" rel="stylesheet">
@@ -299,7 +299,7 @@ details.sub[open]{padding-bottom:12px}
 <span class="tag asm">ASSUMPTION</span> E7  band shape (no source; a representation chosen here): top-hat of full width b·f:  S_I,k(f) = I_k² / (b_k f_k) inside the band
        I_k = m_k · J · δ · √A_s  (the same form as v0.1's I_src);  I_sh also × survival (E4)
 <span class="tag">FACT</span> E8  independent flicker sources add in power:  S_I = S_turb (v0.1) + S_Mack + S_wake
-<span class="tag hyp">HYP</span>  E9  received SLW power per hertz:  s(f) = η² · 2 Z₀ S_I(f) A_rx / (4π r)² · 10^(−χ A_sh(f)/10)   (Hively &amp; Loebl 2019 Eq. B5 per hertz, with v0.1's I_pk = √2 I_rms)
+<span class="tag hyp">HYP</span>  E9  received SLW power per hertz:  s(f) = η² · Z₀ S_I(f) A_rx / (4π r)² · 10^(−χ A_sh(f)/10)   (Hively &amp; Loebl 2019 Eq. B5 as corrected by the erratum, per hertz: I_pk²Z₀/[2(4πr)²] with I_pk² = 2 I_rms², so the factor 2 cancels; before 2026-09-29: 2 Z₀ S_I A_rx/(4π r)², the as-printed form without the ½)
 <span class="tag">FACT</span> E10 noise per hertz  n(f) = (v0.1 shielded-receiver floor)/RBW   (TinySA spec density ⊕ ITU-R P.372 F_a − SE; P.372 extrapolated below 0.3 MHz, ASSUMPTION)
 <span class="tag">FACT</span> E11 Eckart/radiometer detection  d² = τ ∫ (s/n)² df,  η_th = [d_th²/(τ ∫(s₁/n)² df)]^(1/4)   (Rudnick 1961 J. Appl. Phys. 32:140; Dicke 1946 RSI 17:268)
 <span class="tag">FACT</span> E12 pure-tone bound  SNR = η² P τ / n   (standard coherent FFT gain; not physical for these bands)
@@ -725,7 +725,7 @@ Chiao et al. 2023, doi:10.1103/PhysRevA.107.042209.</p>
 <li>Collision rate scales with air density from Grantham's 2.51×10⁹ /s at 45.72 km (the ×0.1…×10 slider covers the spread).</li>
 <li>Current = Ohm's law with Earth's field at full closure (upper limit). The diffusion option is an extreme bound.</li>
 <li>Turbulent cells are the size of the layer thickness with random phases. The flicker spectrum is flat up to S/2π, then falls as f^−5/3 with no cutoff (optimistic at 433/1296 MHz).</li>
-<li>Peak current = √2 × rms, fed into Hively's Eq. B5, which is printed without the usual ½ time-average factor (±3 dB).</li>
+<li>Peak current = √2 × rms, fed into Hively &amp; Loebl 2019 Eq. B5 <b>as corrected by the erratum</b> (Phys. Essays 32(3) 417, FACT): S = I<sub>pk</sub>² Z₀ / [2 (4π r)²], so with I<sub>pk</sub>² = 2 I<sub>rms</sub>² the received SLW power per hertz is Z₀ S<sub>I</sub> A / (4π r)². I = peak is an <span class="tag asm">ASSUMPTION</span> (the erratum does not say). <b>Formula history (2026-09-29):</b> until then this page used the as-first-printed form without the ½ (2 Z₀ S<sub>I</sub> A / (4π r)²), 3.01 dB more signal power; every smallest-η value is now √2 (about 1.41×) larger. The prose numbers in section 7 (verdict) were written with the old form and are that much too optimistic; the tables and plots recompute.</li>
 <li>The receiver is far from the source (many wavelengths away). There is no extra loss along the air path. Line of sight is assumed. A ground receiver needs a distance at least equal to the altitude.</li>
 <li>Antenna collecting area: the hub convention for Dan's small antennas, or λ²/4π for a full-size resonant antenna.</li>
 <li>The receive sphere sits inside a Faraday cage that cuts outside ordinary (TEM) radio noise by SE dB (default 55). The SLW is assumed to pass the cage wall (HYP). No cable crosses the cage wall (battery power, optical fibre out through a waveguide-below-cutoff tube).</li>

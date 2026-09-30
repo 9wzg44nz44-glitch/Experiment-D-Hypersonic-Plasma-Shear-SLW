@@ -6,64 +6,64 @@ v0.1 = single look in the 30 kHz RBW (no integration). v0.2 = same receiver plus
 
 | range | receiver | v0.1 | v0.2, 1 s | v0.2, 100 s |
 |---|---|---|---|---|
-| 10 km | 433.92 MHz, Dan's small antenna (hub) | 5.3e+02 | 40 | 13 |
-| 10 km | 1296 MHz, Dan's sleeve balun (hub) | 1.3e+03 | 1e+02 | 32 |
-| 10 km | 1 MHz, 75 m resonant (lambda^2/4pi) | 0.0025 | 0.00019 | 6e-05 |
-| 10 km | Mack-band matched LF (lambda^2/4pi at f2=241 kHz, 310 m quarter-wave) | — | 1.2e-05 | 3.7e-06 |
-| 10 km | Shedding-band matched VLF (lambda^2/4pi at fsh=1486 Hz, 50 km quarter-wave; kr=0.31) | — | 1.9e-05 | 5.9e-06 |
-| 10 km | All-band Eckart, fixed 75 m-class antenna (A=7.2e3 m^2), far field only | — | 3.1e-05 | 9.7e-06 |
-| 10 km |   of which Mack band only (same antenna) | — | 4.9e-05 | 1.6e-05 |
-| 10 km |   pure-tone bound for Mack power (NOT physical) | — | 8.8e-06 | 8.8e-07 |
-| 100 km | 433.92 MHz, Dan's small antenna (hub) | 5.3e+03 | 4e+02 | 1.3e+02 |
-| 100 km | 1296 MHz, Dan's sleeve balun (hub) | 1.3e+04 | 1e+03 | 3.2e+02 |
-| 100 km | 1 MHz, 75 m resonant (lambda^2/4pi) | 0.025 | 0.0019 | 0.0006 |
-| 100 km | Mack-band matched LF (lambda^2/4pi at f2=241 kHz, 310 m quarter-wave) | — | 0.00012 | 3.7e-05 |
-| 100 km | Shedding-band matched VLF (lambda^2/4pi at fsh=1486 Hz, 50 km quarter-wave; kr=3.1) | — | 0.00019 | 5.9e-05 |
-| 100 km | All-band Eckart, fixed 75 m-class antenna (A=7.2e3 m^2), far field only | — | 0.00031 | 9.7e-05 |
-| 100 km |   of which Mack band only (same antenna) | — | 0.00049 | 0.00016 |
-| 100 km |   pure-tone bound for Mack power (NOT physical) | — | 8.8e-05 | 8.8e-06 |
+| 10 km | 433.92 MHz, Dan's small antenna (hub) | 7.5e+02 | 57 | 18 |
+| 10 km | 1296 MHz, Dan's sleeve balun (hub) | 1.9e+03 | 1.4e+02 | 45 |
+| 10 km | 1 MHz, 75 m resonant (lambda^2/4pi) | 0.0035 | 0.00027 | 8.4e-05 |
+| 10 km | Mack-band matched LF (lambda^2/4pi at f2=241 kHz, 310 m quarter-wave) | — | 1.7e-05 | 5.3e-06 |
+| 10 km | Shedding-band matched VLF (lambda^2/4pi at fsh=1486 Hz, 50 km quarter-wave; kr=0.31) | — | 2.6e-05 | 8.3e-06 |
+| 10 km | All-band Eckart, fixed 75 m-class antenna (A=7.2e3 m^2), far field only | — | 4.4e-05 | 1.4e-05 |
+| 10 km |   of which Mack band only (same antenna) | — | 6.9e-05 | 2.2e-05 |
+| 10 km |   pure-tone bound for Mack power (NOT physical) | — | 1.2e-05 | 1.2e-06 |
+| 100 km | 433.92 MHz, Dan's small antenna (hub) | 7.5e+03 | 5.7e+02 | 1.8e+02 |
+| 100 km | 1296 MHz, Dan's sleeve balun (hub) | 1.9e+04 | 1.4e+03 | 4.5e+02 |
+| 100 km | 1 MHz, 75 m resonant (lambda^2/4pi) | 0.035 | 0.0027 | 0.00084 |
+| 100 km | Mack-band matched LF (lambda^2/4pi at f2=241 kHz, 310 m quarter-wave) | — | 0.00017 | 5.3e-05 |
+| 100 km | Shedding-band matched VLF (lambda^2/4pi at fsh=1486 Hz, 50 km quarter-wave; kr=3.1) | — | 0.00026 | 8.3e-05 |
+| 100 km | All-band Eckart, fixed 75 m-class antenna (A=7.2e3 m^2), far field only | — | 0.00044 | 0.00014 |
+| 100 km |   of which Mack band only (same antenna) | — | 0.00069 | 0.00022 |
+| 100 km |   pure-tone bound for Mack power (NOT physical) | — | 0.00012 | 1.2e-05 |
 
 ## representative (45 km, M15, n_e 1e18, delta 1 cm, D 2.5 m)
 
 | range | receiver | v0.1 | v0.2, 1 s | v0.2, 100 s |
 |---|---|---|---|---|
-| 10 km | 433.92 MHz, Dan's small antenna (hub) | 2e+04 | 1.5e+03 | 4.7e+02 |
-| 10 km | 1296 MHz, Dan's sleeve balun (hub) | 4.9e+04 | 3.7e+03 | 1.2e+03 |
-| 10 km | 1 MHz, 75 m resonant (lambda^2/4pi) | 0.093 | 0.0071 | 0.0022 |
-| 10 km | Mack-band matched LF (lambda^2/4pi at f2=158 kHz, 475 m quarter-wave) | — | 0.00026 | 8.1e-05 |
-| 10 km | Shedding-band matched VLF (lambda^2/4pi at fsh=388 Hz, 193 km quarter-wave; kr=0.081) | — | 0.0029 | 0.00093 |
-| 10 km | All-band Eckart, fixed 75 m-class antenna (A=7.2e3 m^2), far field only | — | 0.0011 | 0.00036 |
-| 10 km |   of which Mack band only (same antenna) | — | 0.0016 | 0.00051 |
-| 10 km |   pure-tone bound for Mack power (NOT physical) | — | 0.00036 | 3.6e-05 |
-| 100 km | 433.92 MHz, Dan's small antenna (hub) | 2e+05 | 1.5e+04 | 4.7e+03 |
-| 100 km | 1296 MHz, Dan's sleeve balun (hub) | 4.9e+05 | 3.7e+04 | 1.2e+04 |
-| 100 km | 1 MHz, 75 m resonant (lambda^2/4pi) | 0.93 | 0.071 | 0.022 |
-| 100 km | Mack-band matched LF (lambda^2/4pi at f2=158 kHz, 475 m quarter-wave) | — | 0.0026 | 0.00081 |
-| 100 km | Shedding-band matched VLF (lambda^2/4pi at fsh=388 Hz, 193 km quarter-wave; kr=0.81) | — | 0.029 | 0.0093 |
-| 100 km | All-band Eckart, fixed 75 m-class antenna (A=7.2e3 m^2), far field only | — | 0.011 | 0.0036 |
-| 100 km |   of which Mack band only (same antenna) | — | 0.016 | 0.0051 |
-| 100 km |   pure-tone bound for Mack power (NOT physical) | — | 0.0036 | 0.00036 |
+| 10 km | 433.92 MHz, Dan's small antenna (hub) | 2.8e+04 | 2.1e+03 | 6.7e+02 |
+| 10 km | 1296 MHz, Dan's sleeve balun (hub) | 6.9e+04 | 5.3e+03 | 1.7e+03 |
+| 10 km | 1 MHz, 75 m resonant (lambda^2/4pi) | 0.13 | 0.01 | 0.0032 |
+| 10 km | Mack-band matched LF (lambda^2/4pi at f2=158 kHz, 475 m quarter-wave) | — | 0.00036 | 0.00011 |
+| 10 km | Shedding-band matched VLF (lambda^2/4pi at fsh=388 Hz, 193 km quarter-wave; kr=0.081) | — | 0.0041 | 0.0013 |
+| 10 km | All-band Eckart, fixed 75 m-class antenna (A=7.2e3 m^2), far field only | — | 0.0016 | 0.00051 |
+| 10 km |   of which Mack band only (same antenna) | — | 0.0023 | 0.00073 |
+| 10 km |   pure-tone bound for Mack power (NOT physical) | — | 0.00051 | 5.1e-05 |
+| 100 km | 433.92 MHz, Dan's small antenna (hub) | 2.8e+05 | 2.1e+04 | 6.7e+03 |
+| 100 km | 1296 MHz, Dan's sleeve balun (hub) | 6.9e+05 | 5.3e+04 | 1.7e+04 |
+| 100 km | 1 MHz, 75 m resonant (lambda^2/4pi) | 1.3 | 0.1 | 0.032 |
+| 100 km | Mack-band matched LF (lambda^2/4pi at f2=158 kHz, 475 m quarter-wave) | — | 0.0036 | 0.0011 |
+| 100 km | Shedding-band matched VLF (lambda^2/4pi at fsh=388 Hz, 193 km quarter-wave; kr=0.81) | — | 0.041 | 0.013 |
+| 100 km | All-band Eckart, fixed 75 m-class antenna (A=7.2e3 m^2), far field only | — | 0.016 | 0.0051 |
+| 100 km |   of which Mack band only (same antenna) | — | 0.023 | 0.0073 |
+| 100 km |   pure-tone bound for Mack power (NOT physical) | — | 0.0051 | 0.00051 |
 
 ## extreme n_e 1e20 (70 km, M25)
 
 | range | receiver | v0.1 | v0.2, 1 s | v0.2, 100 s |
 |---|---|---|---|---|
-| 10 km | 433.92 MHz, Dan's small antenna (hub) | 5.3 | 0.4 | 0.13 |
-| 10 km | 1296 MHz, Dan's sleeve balun (hub) | 13 | 1 | 0.32 |
-| 10 km | 1 MHz, 75 m resonant (lambda^2/4pi) | 2.5e-05 | 1.9e-06 | 6e-07 |
-| 10 km | Mack-band matched LF (lambda^2/4pi at f2=241 kHz, 310 m quarter-wave) | — | 1.2e-07 | 3.7e-08 |
-| 10 km | Shedding-band matched VLF (lambda^2/4pi at fsh=1486 Hz, 50 km quarter-wave; kr=0.31) | — | 7.8e-07 | 2.5e-07 |
-| 10 km | All-band Eckart, fixed 75 m-class antenna (A=7.2e3 m^2), far field only | — | 3.1e-07 | 9.7e-08 |
-| 10 km |   of which Mack band only (same antenna) | — | 4.9e-07 | 1.6e-07 |
-| 10 km |   pure-tone bound for Mack power (NOT physical) | — | 8.8e-08 | 8.8e-09 |
-| 100 km | 433.92 MHz, Dan's small antenna (hub) | 53 | 4 | 1.3 |
-| 100 km | 1296 MHz, Dan's sleeve balun (hub) | 1.3e+02 | 10 | 3.2 |
-| 100 km | 1 MHz, 75 m resonant (lambda^2/4pi) | 0.00025 | 1.9e-05 | 6e-06 |
-| 100 km | Mack-band matched LF (lambda^2/4pi at f2=241 kHz, 310 m quarter-wave) | — | 1.2e-06 | 3.7e-07 |
-| 100 km | Shedding-band matched VLF (lambda^2/4pi at fsh=1486 Hz, 50 km quarter-wave; kr=3.1) | — | 7.8e-06 | 2.5e-06 |
-| 100 km | All-band Eckart, fixed 75 m-class antenna (A=7.2e3 m^2), far field only | — | 3.1e-06 | 9.7e-07 |
-| 100 km |   of which Mack band only (same antenna) | — | 4.9e-06 | 1.6e-06 |
-| 100 km |   pure-tone bound for Mack power (NOT physical) | — | 8.8e-07 | 8.8e-08 |
+| 10 km | 433.92 MHz, Dan's small antenna (hub) | 7.5 | 0.57 | 0.18 |
+| 10 km | 1296 MHz, Dan's sleeve balun (hub) | 19 | 1.4 | 0.45 |
+| 10 km | 1 MHz, 75 m resonant (lambda^2/4pi) | 3.5e-05 | 2.7e-06 | 8.4e-07 |
+| 10 km | Mack-band matched LF (lambda^2/4pi at f2=241 kHz, 310 m quarter-wave) | — | 1.7e-07 | 5.3e-08 |
+| 10 km | Shedding-band matched VLF (lambda^2/4pi at fsh=1486 Hz, 50 km quarter-wave; kr=0.31) | — | 1.1e-06 | 3.5e-07 |
+| 10 km | All-band Eckart, fixed 75 m-class antenna (A=7.2e3 m^2), far field only | — | 4.4e-07 | 1.4e-07 |
+| 10 km |   of which Mack band only (same antenna) | — | 6.9e-07 | 2.2e-07 |
+| 10 km |   pure-tone bound for Mack power (NOT physical) | — | 1.2e-07 | 1.2e-08 |
+| 100 km | 433.92 MHz, Dan's small antenna (hub) | 75 | 5.7 | 1.8 |
+| 100 km | 1296 MHz, Dan's sleeve balun (hub) | 1.9e+02 | 14 | 4.5 |
+| 100 km | 1 MHz, 75 m resonant (lambda^2/4pi) | 0.00035 | 2.7e-05 | 8.4e-06 |
+| 100 km | Mack-band matched LF (lambda^2/4pi at f2=241 kHz, 310 m quarter-wave) | — | 1.7e-06 | 5.3e-07 |
+| 100 km | Shedding-band matched VLF (lambda^2/4pi at fsh=1486 Hz, 50 km quarter-wave; kr=3.1) | — | 1.1e-05 | 3.5e-06 |
+| 100 km | All-band Eckart, fixed 75 m-class antenna (A=7.2e3 m^2), far field only | — | 4.4e-06 | 1.4e-06 |
+| 100 km |   of which Mack band only (same antenna) | — | 6.9e-06 | 2.2e-06 |
+| 100 km |   pure-tone bound for Mack power (NOT physical) | — | 1.2e-06 | 1.2e-07 |
 
 ## Modulation bands (FACT frequencies; U from Mach × USSA-1976 sound speed)
 
@@ -139,4 +139,4 @@ v0.1 = single look in the 30 kHz RBW (no integration). v0.2 = same receiver plus
 | 70 | 6000 | 1e18 | 3.29e-14 | 3.04e-05 s | 5.24e+03 Hz | 0.135 m | 0.119 | 8.26e-02 | 1.72e+05 |
 | 70 | 6000 | 1e20 | 3.29e-14 | 3.04e-07 s | 5.24e+05 Hz | 0.00135 m | 0.00135 | 8.26e-02 | 1.72e+05 |
 
-Regression: v0.2 tuned receiver with bands off and single-shot integration reproduces v0.1 η_th0 on 2304 v0.1 grid points, worst rel 1.22e-15.
+Regression: v0.2 tuned receiver with bands off and single-shot integration reproduces v0.1 η_th0 on 2304 v0.1 grid points, worst rel 1.09e-15.

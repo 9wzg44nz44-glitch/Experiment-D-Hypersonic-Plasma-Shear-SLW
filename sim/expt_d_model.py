@@ -1,4 +1,4 @@
-"""Experiment D - SLW/SW detectability model (expt-d-detect-v0.3; v0.1 formulas + v0.3 receiver chain), Python reference implementation.
+"""Experiment D - SLW/SW detectability model (expt-d-detect-v0.3.1; v0.1 formulas + v0.3 receiver chain), Python reference implementation.
 
 Mirrors web/js/slw-detect.js (browser/node) and wolfram/ExptDDetect.wl (Mathematica twin) formula-for-formula.
 Labels: FACT = published / standard physics (cited in REPORT.md); HYP = Hively EED as printed (Hively & Loebl 2019,
@@ -6,7 +6,7 @@ US 9,306,527, hub ledger); ASSUMPTION = modelling choice made here; SWEEP = unkn
 """
 import math
 
-VERSION = "expt-d-detect-v0.3"
+VERSION = "expt-d-detect-v0.3.1"
 # FACT: CODATA 2018
 c = 299792458.0
 mu0 = 1.25663706212e-6
@@ -192,7 +192,7 @@ def model(pin=None):
     head_gain = 10 * math.log1p(ch["dFback"] / (ch["Ffront"] + l)) / math.log(10)
     eta = 10 ** p["log10_eta"]
     kappa = 10 ** p["log10_kappa"]
-    Sslw1 = Z0 * Ipk * Ipk / (4 * math.pi * r) ** 2
+    Sslw1 = 0.5 * Z0 * Ipk * Ipk / (4 * math.pi * r) ** 2   # Hively-Loebl 2019 Eq.38/B5 per Erratum (was no 1/2 before 2026-09-29)
     slwLoss_dB = p["chi"] * Ash_dB
     Pslw1 = Sslw1 * Arx * 10 ** (-slwLoss_dB / 10)
     Pslw = eta * eta * Pslw1
