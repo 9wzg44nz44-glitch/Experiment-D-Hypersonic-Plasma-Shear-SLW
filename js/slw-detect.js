@@ -1,4 +1,4 @@
-/* Experiment D — SLW/SW detectability engine (expt-d-detect-v0.3; v0.1 formulas unchanged, v0.2 adds js/slw-modulation.js,
+/* Experiment D — SLW/SW detectability engine (expt-d-detect-v0.3.1; v0.1 formulas unchanged, v0.2 adds js/slw-modulation.js,
  * v0.3 adds the receiver-chain model: Friis cascade + instrument presets; default chain = TinySA alone = v0.2 numbers exactly)
  * Pure functions, no DOM. Used by slw-detectability.html and by node (cross-check vs Python/WL).
  * Labels: FACT = published/standard physics (cited); HYP = Hively EED (as printed in the cited papers / hub ledger);
@@ -7,7 +7,7 @@
  */
 (function (root) {
   "use strict";
-  const VERSION = "expt-d-detect-v0.3";
+  const VERSION = "expt-d-detect-v0.3.1";
   // FACT: CODATA 2018 exact / recommended values
   const K = {
     c: 299792458,
@@ -170,9 +170,10 @@
     const headIdeal = 10 * Math.log1p((ch.Fsys - 1) / (1 + l)) / Math.LN10;
     const headGain = 10 * Math.log1p(ch.dFback / (ch.Ffront + l)) / Math.LN10;
     const margin = env ? 10 * Math.log10(ch.Fsys) - (Fa - p.SE_dB) : null; // receiver noise minus leaked noise (dB)
-    // ---- HYP: SLW (Hively & Loebl 2019 Eq. B5; US 9,306,527 Eq. 15) ----
+    // ---- HYP: SLW (Hively & Loebl 2019 Eq. B5 as corrected by the Erratum, Phys. Essays 32(3) 417; the patent Eq. 15 has no 1/2) ----
     const eta = Math.pow(10, p.log10_eta), kappa = Math.pow(10, p.log10_kappa);
-    const Sslw1 = K.Z0 * Ipk * Ipk / Math.pow(4 * Math.PI * r, 2);  // W/m^2 at eta = 1
+    // Hively & Loebl 2019 Eq. 38/B5 as corrected by the Erratum (Phys. Essays 32(3) 417): S = I^2 Z0 / [2 (4 pi r)^2] (FACT); I = peak (ASSUMPTION). Was Z0 I^2/(4 pi r)^2 (no 1/2) before 2026-09-29.
+    const Sslw1 = 0.5 * K.Z0 * Ipk * Ipk / Math.pow(4 * Math.PI * r, 2);  // W/m^2 at eta = 1
     const slwLoss_dB = p.chi * Ash_dB;                       // SWEEP chi: 0 (HL2019 App. A) ... 1 (hub Joule reading)
     const Pslw1 = Sslw1 * Arx * Math.pow(10, -slwLoss_dB / 10);
     const Pslw = eta * eta * Pslw1;
