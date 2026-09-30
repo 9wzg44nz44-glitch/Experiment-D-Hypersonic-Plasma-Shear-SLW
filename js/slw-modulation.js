@@ -1,4 +1,4 @@
-/* Experiment D v0.2 — "Sheath modulation" engine (expt-d-detect-v0.3: noise density n(f) now uses the v0.3 receiver chain)
+/* Experiment D v0.2 — "Sheath modulation" engine (expt-d-detect-v0.3.1: noise density n(f) now uses the v0.3 receiver chain)
  * Pure functions, no DOM. Needs js/slw-detect.js (the unchanged v0.1 engine) loaded first (browser) or require()d (node).
  * Mirrors sim/expt_d_mod.py (Python reference) and the ExptDMod section of wolfram/ExptDDetect.wl formula-for-formula.
  * Labels: FACT = published physics (cited on the page); HYP = Hively EED as printed; ASSUMPTION = modelling choice (slider);
@@ -7,7 +7,7 @@
 (function (root) {
   "use strict";
   const X = (typeof module !== "undefined" && module.exports) ? require("./slw-detect.js") : root.ExptDDetect;
-  const VERSION = "expt-d-detect-v0.3";
+  const VERSION = "expt-d-detect-v0.3.1";
   const K = X.K;
   const AMU = 1.66053906660e-27, M_AIR = 28.9644 * AMU;          // FACT USSA-1976 mean molecular mass
   const X_O2 = 0.209476, X_N2 = 0.780840;                          // FACT USSA-1976 volume fractions
@@ -87,10 +87,11 @@
     if (s.fsh_lo <= f && f < s.fsh_hi) S += s.Ish * s.Ish / (p.bsh * s.fsh);
     return S;
   }
+  // Erratum Eq. 38/B5: S = I_pk^2 Z0/[2 (4 pi r)^2] with I_pk^2 = 2 I_rms^2  =>  S = Z0 I_rms^2/(4 pi r)^2. The former factor 2 (I_pk^2 = 2 I_rms^2 in the as-printed no-1/2 form) is now cancelled by the erratum 1/2 (2026-09-29).
   function s1(s, f, A) {
     const p = s.p;
     const loss = p.chi ? p.chi * sheathLoss(f, p)[0] : 0.0;
-    return 2 * K.Z0 * psdI(s, f) * A / Math.pow(4 * Math.PI * s.r, 2) * Math.pow(10, -loss / 10);
+    return K.Z0 * psdI(s, f) * A / Math.pow(4 * Math.PI * s.r, 2) * Math.pow(10, -loss / 10);
   }
   function qBand(s, fa, fb, A) {
     const df = (fb - fa) / NQ_BAND; let q = 0.0;
@@ -110,7 +111,7 @@
     const F = Math.min(1.0, p.rbw * g / (2.5 * s.fc));
     const Iband2 = s.It * s.It * F + p.rbw * (psdI(s, f) - s.It * s.It * g / (2.5 * s.fc));
     const loss = p.chi * sheathLoss(f, p)[0];
-    const P1 = 2 * K.Z0 * Iband2 * A / Math.pow(4 * Math.PI * s.r, 2) * Math.pow(10, -loss / 10);
+    const P1 = K.Z0 * Iband2 * A / Math.pow(4 * Math.PI * s.r, 2) * Math.pow(10, -loss / 10);
     const N = noiseDensity(f, p) * p.rbw;
     const q = p.rbw * Math.pow(P1 / N, 2);
     const tau = Math.max(p.tau_s, 1.0 / p.rbw);
@@ -149,7 +150,7 @@
     o.eta_mack = etaFromQ(q2, Math.max(p.tau_s, 1 / (s.f2_hi - s.f2_lo)), p.d_th);
     o.eta_shed = etaFromQ(qs, Math.max(p.tau_s, 1 / (s.fsh_hi - s.fsh_lo)), p.d_th);
     o.kr_shed = 2 * Math.PI * s.r * s.fsh / K.c;
-    const P2 = 2 * K.Z0 * s.I2 * s.I2 * A / Math.pow(4 * Math.PI * s.r, 2);
+    const P2 = K.Z0 * s.I2 * s.I2 * A / Math.pow(4 * Math.PI * s.r, 2);
     o.eta_tone_mack = P2 > 0 ? Math.sqrt(p.d_th * noiseDensity(s.f2, p) / (P2 * p.tau_s)) : Infinity;
     const eta = Math.pow(10, p.log10_eta);
     o.dev_all = isFinite(o.eta_all) ? Math.pow(eta, 4) / Math.pow(o.eta_all, 4) * p.d_th : 0.0;
@@ -164,7 +165,7 @@
   function spectrum(pin, fs) {
     const s = setup(pin), p = s.p, A = apArea(p.listen, 1e6), eta = Math.pow(10, p.log10_eta);
     return fs.map((f) => ({ f, S: eta * eta * s1(s, f, A), N: noiseDensity(f, p),
-      St: 2 * K.Z0 * (s.It * s.It * (f <= s.fc ? 1 : Math.pow(f / s.fc, -5 / 3)) / (2.5 * s.fc)) * A / Math.pow(4 * Math.PI * s.r, 2) * eta * eta }));
+      St: K.Z0 * (s.It * s.It * (f <= s.fc ? 1 : Math.pow(f / s.fc, -5 / 3)) / (2.5 * s.fc)) * A / Math.pow(4 * Math.PI * s.r, 2) * eta * eta }));
   }
   const api = { VERSION, MOD_DEFAULTS, model, setup, psdI, s1, noiseDensity, apArea, spectrum, alphaDR, kAttO2, kAttN2, kDetO2, A_LF75 };
   if (typeof module !== "undefined" && module.exports) module.exports = api;

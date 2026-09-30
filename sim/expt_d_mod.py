@@ -1,4 +1,4 @@
-"""Experiment D v0.2 - 'Sheath modulation' study (physics id expt-d-detect-v0.3: n(f) uses the v0.3 receiver chain). Python reference.
+"""Experiment D v0.2 - 'Sheath modulation' study (physics id expt-d-detect-v0.3.1: n(f) uses the v0.3 receiver chain). Python reference.
 
 Mirrors js/slw-modulation.js (browser/node) and the ExptDMod* section of wolfram/ExptDDetect.wl formula-for-formula.
 Builds on the UNCHANGED v0.1 engine (../expt_d_model.py): same sheath current J, same random-phase current
@@ -15,7 +15,7 @@ _here = os.path.dirname(os.path.abspath(__file__))
 sys.path[:0] = [_here, os.path.join(_here, "..")]  # repo sim/ layout | sim-lab layout
 import expt_d_model as B  # v0.1 engine
 
-VERSION = "expt-d-detect-v0.3"
+VERSION = "expt-d-detect-v0.3.1"
 AMU = 1.66053906660e-27
 M_AIR = 28.9644 * AMU            # FACT USSA-1976 sea-level mean molecular mass (constant below 86 km)
 X_O2, X_N2 = 0.209476, 0.780840  # FACT USSA-1976 volume fractions
@@ -153,10 +153,10 @@ def psd_I(s, f):
 
 
 def s1(s, f, A):
-    """Received SLW PSD at eta = 1 (W/Hz): 2 Z0 S_I(f) A / (4 pi r)^2 x 10^(-chi A_sh(f)/10)  (HL2019 Eq. B5, v0.1 I_pk = sqrt2 I_rms)."""
+    """Received SLW PSD at eta = 1 (W/Hz): Z0 S_I(f) A / (4 pi r)^2 x 10^(-chi A_sh(f)/10)  (HL2019 Eq. B5 as corrected by the Erratum: I_pk^2 Z0/[2(4 pi r)^2] with I_pk = sqrt2 I_rms; was 2 Z0 S_I ... before 2026-09-29)."""
     p = s["p"]
     loss = p["chi"] * sheath_loss_db(f, p)[0] if p["chi"] else 0.0
-    return 2 * B.Z0 * psd_I(s, f) * A / (4 * math.pi * s["r"]) ** 2 * 10 ** (-loss / 10)
+    return B.Z0 * psd_I(s, f) * A / (4 * math.pi * s["r"]) ** 2 * 10 ** (-loss / 10)
 
 
 def q_band(s, fa, fb, A):
@@ -195,7 +195,7 @@ def tuned(s, f, ap):
     F = min(1.0, p["rbw"] * g / (2.5 * s["fc"]))
     Iband2 = s["It"] ** 2 * F + p["rbw"] * (psd_I(s, f) - s["It"] ** 2 * g / (2.5 * s["fc"]))
     loss = p["chi"] * sheath_loss_db(f, p)[0]
-    P1 = 2 * B.Z0 * Iband2 * A / (4 * math.pi * s["r"]) ** 2 * 10 ** (-loss / 10)
+    P1 = B.Z0 * Iband2 * A / (4 * math.pi * s["r"]) ** 2 * 10 ** (-loss / 10)
     N = noise_density(f, p) * p["rbw"]
     q = p["rbw"] * (P1 / N) ** 2
     tau = max(p["tau_s"], 1.0 / p["rbw"])
@@ -257,7 +257,7 @@ def model(pin=None):
     o["eta_shed"] = eta_from_q(qs, max(p["tau_s"], 1 / (s["fsh_hi"] - s["fsh_lo"])), p["d_th"])
     o["kr_shed"] = 2 * math.pi * s["r"] * s["fsh"] / B.c
     # hypothetical pure-tone bound for the Mack power (NOT physical: measured band ~20 % wide)
-    P2 = 2 * B.Z0 * s["I2"] ** 2 * A / (4 * math.pi * s["r"]) ** 2
+    P2 = B.Z0 * s["I2"] ** 2 * A / (4 * math.pi * s["r"]) ** 2
     o["eta_tone_mack"] = math.sqrt(p["d_th"] * noise_density(s["f2"], p) / (P2 * p["tau_s"])) if P2 > 0 else math.inf
     eta = 10 ** p["log10_eta"]
     o["dev_all"] = eta ** 4 / o["eta_all"] ** 4 * p["d_th"] if math.isfinite(o["eta_all"]) else 0.0  # deflection at your eta

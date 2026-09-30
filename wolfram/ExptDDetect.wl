@@ -1,11 +1,11 @@
 (* ::Package:: *)
 (* Experiment D - SLW/SW detectability engine, Mathematica twin of web/js/slw-detect.js and expt_d_model.py.
-   PhysicsVersion: expt-d-detect-v0.3 (v0.1 engine + v0.3 receiver chain (Friis cascade, instrument presets) + v0.2 sheath-modulation section at the end)   (NOT yet executed: no Wolfram kernel on the build box; syntax checked by eye + wl_lint.mjs)
+   PhysicsVersion: expt-d-detect-v0.3.1 (v0.1 engine + v0.3 receiver chain (Friis cascade, instrument presets) + v0.2 sheath-modulation section at the end)   (NOT yet executed: no Wolfram kernel on the build box; syntax checked by eye + wl_lint.mjs)
    Labels: FACT = published/standard physics; HYP = Hively EED as printed (Hively & Loebl 2019 Eq. B5/37;
    US 9,306,527 Eq. 15; hub ledger box C = -mu0 (d_t rho + div J)); ASSUMPTION = modelling choice; SWEEP = unknown coupling.
    Symbols avoid the protected single letters C, D, E, I, K, N, O. *)
 
-exptDVersion = "expt-d-detect-v0.3";
+exptDVersion = "expt-d-detect-v0.3.1";
 
 (* FACT: CODATA 2018 *)
 cLight = 299792458.;
@@ -136,7 +136,7 @@ exptDModel[pin_Association] := Module[
    headGain = 10. log1p[ch["dFback"]/(ch["Ffront"] + ll)]/Log[10.];
    eta = 10.^p["log10_eta"]; kappa = 10.^p["log10_kappa"];
    (* HYP: Hively & Loebl 2019 Eq. B5 / US 9,306,527 Eq. 15 *)
-   sslw1 = z0 ipk ipk/(4 N[Pi] r)^2;
+   sslw1 = 0.5 z0 ipk ipk/(4 N[Pi] r)^2;  (* Hively-Loebl 2019 Eq.38/B5 per Erratum (Phys. Essays 32(3) 417); was z0 ipk ipk/(4 Pi r)^2 before 2026-09-29 *)
    slwLossdB = p["chi"] ashdB;
    pslw1 = sslw1 arx 10.^(-slwLossdB/10.);
    pslw = eta eta pslw1;
@@ -283,7 +283,7 @@ psdI[s_, f_] := Module[{p = s["p"], g, sv},
 
 sOne[s_, f_, a_] := Module[{p = s["p"], loss},
    loss = If[p["chi"] != 0, p["chi"] sheathLoss[f, p][[1]], 0.];
-   2 z0 psdI[s, f] a/(4 N[Pi] s["r"])^2 10.^(-loss/10.)];
+   z0 psdI[s, f] a/(4 N[Pi] s["r"])^2 10.^(-loss/10.)];  (* erratum Eq.38/B5: 1/2 cancels the 2 from Ipk^2 = 2 Irms^2 (2026-09-29) *)
 
 qBand[s_, fa_, fb_, a_] := Module[{df = (fb - fa)/nqBand},
    Sum[With[{f = fa + (i + 0.5) df}, (sOne[s, f, a]/noiseDensity[f, s["p"]])^2 df], {i, 0, nqBand - 1}]];
@@ -300,7 +300,7 @@ tunedRx[s_, f_, ap_] := Module[{p = s["p"], a, g, fs, iband2, loss, p1, nw, q, t
    fs = Min[1., p["rbw"] g/(2.5 s["fc"])];
    iband2 = s["It"]^2 fs + p["rbw"] (psdI[s, f] - s["It"]^2 g/(2.5 s["fc"]));
    loss = p["chi"] sheathLoss[f, p][[1]];
-   p1 = 2 z0 iband2 a/(4 N[Pi] s["r"])^2 10.^(-loss/10.);
+   p1 = z0 iband2 a/(4 N[Pi] s["r"])^2 10.^(-loss/10.);
    nw = noiseDensity[f, p] p["rbw"];
    q = p["rbw"] (p1/nw)^2;
    tau = Max[p["tau_s"], 1./p["rbw"]];
@@ -334,7 +334,7 @@ exptDModModel[pin_Association] := Module[{s = modSetup[pin], p, o, m2, msh, a, q
    o["eta_mack"] = etaFromQ[q2, Max[p["tau_s"], 1./(s["f2_hi"] - s["f2_lo"])], p["d_th"]];
    o["eta_shed"] = etaFromQ[qs, Max[p["tau_s"], 1./(s["fsh_hi"] - s["fsh_lo"])], p["d_th"]];
    o["kr_shed"] = 2 N[Pi] s["r"] s["fsh"]/cLight;
-   p2 = 2 z0 s["I2"]^2 a/(4 N[Pi] s["r"])^2;
+   p2 = z0 s["I2"]^2 a/(4 N[Pi] s["r"])^2;
    o["eta_tone_mack"] = If[p2 > 0, Sqrt[p["d_th"] noiseDensity[s["f2"], p]/(p2 p["tau_s"])], Infinity];
    eta = 10.^p["log10_eta"];
    o["dev_all"] = If[o["eta_all"] < Infinity, eta^4/o["eta_all"]^4 p["d_th"], 0.];
